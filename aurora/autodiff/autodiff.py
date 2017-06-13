@@ -24,8 +24,22 @@ class Node(object):
         else:
             return add_const(self, other)
 
+    def __sub__(self, other):
+        if isinstance(other, Node):
+            return sub(self, other)
+        else:
+            return sub_const(self, other)
+
+    def __mul__(self, other):
+        if isinstance(other, Node):
+            return mul(self, other)
+        else:
+            return mul_const(self, other)
+
     # Allow left-hand-side add and multiply.
     __radd__ = __add__
+    __rmul__ = __mul__
+    __rsub__ = __sub__
 
 
 class Op(object):
@@ -172,6 +186,37 @@ class AddByConstOp(Op):
         return [output_grads]
 
 
+class SubOp(Op):
+    def __call__(self, node_A, node_B):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A, node_B]
+        new_node.name = '({0:s}-{1:s})'.format(node_A.name, node_B.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 2
+        return input_vals[0] - input_vals[1]
+
+    def gradient(self, node, output_grads):
+        return [output_grads, -1 * output_grads]
+
+
+class SubByConstOp(Op):
+    def __call__(self, node_A, const_val):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.const = const_val
+        new_node.name = '({0:s}-{1:f})'.format(node_A.name, const_val)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        return input_vals[0] - node.const
+
+    def gradient(self, node, output_grads):
+        return [output_grads]
+
+
 class OnesLikeOp(Op):
     def __call__(self, node_A):
         new_node = Op.__call__(self)
@@ -204,6 +249,37 @@ class ZerosLikeOp(Op):
         return [zeros_like(node.inputs[0])]
 
 
+class MulOp(Op):
+    def __call__(self, node_A, node_B):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A, node_B]
+        new_node.name = '({0:s}*{1:s})'.format(node_A.name, node_B.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 2
+        return input_vals[0] * input_vals[1]
+
+    def gradient(self, node, output_grads):
+        return [node.inputs[1] * output_grads, node.inputs[0] * output_grads]
+
+
+class MulByConstOp(Op):
+    def __call__(self, node_A, const_val):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.const = const_val
+        new_node.name = '({0:s}*{1:f})'.format(node_A.name, const_val)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        return node.const * input_vals[0]
+
+    def gradient(self, node, output_grads):
+        return [node.const * output_grads]
+
+
 class PlaceholderOp(Op):
     """Op to feed value to a nodes."""
 
@@ -233,6 +309,10 @@ def Variable(name):
 # Global singleton operations
 add = AddOp()
 add_const = AddByConstOp()
+sub = SubOp()
+sub_const = SubByConstOp()
+mul = MulOp()
+mul_const = MulByConstOp()
 zeros_like = ZerosLikeOp()
 ones_like = OnesLikeOp()
 placeholder = PlaceholderOp()
