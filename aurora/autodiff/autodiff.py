@@ -1,5 +1,7 @@
 import numpy as np
 from .helper import find_topo_sort
+from .helper import sum_node_list
+
 
 class Node(object):
     """ Node object represents a node in the computational graph"""
@@ -7,7 +9,7 @@ class Node(object):
     def __init__(self):
         """ New node will be created by Op objects __call__ method"""
         # list of inputs to this node
-        self.input = []
+        self.inputs = []
         # operator
         self.op = None
         # constants
@@ -21,6 +23,9 @@ class Node(object):
             return add(self, other)
         else:
             return add_const(self, other)
+
+    # Allow left-hand-side add and multiply.
+    __radd__ = __add__
 
 
 class Op(object):
@@ -143,8 +148,8 @@ class AddByConstOp(Op):
         """
         new_node = Op.__call__(self)
         new_node.const = const_val
-        new_node.input = [node_A]
-        new_node.name = '({s}+{s})'.format(node_A.name, const_val)
+        new_node.inputs = [node_A]
+        new_node.name = '({0:s}+{1:f})'.format(node_A.name, const_val)
         return new_node
 
     def compute(self, node, input_vals):
@@ -166,9 +171,98 @@ class AddByConstOp(Op):
         """
         return [output_grads]
 
+
+class OnesLikeOp(Op):
+    def __call__(self, node_A):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.name = 'Oneslike({})'.format(node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        assert isinstance(input_vals[0], np.ndarray)
+        return np.ones(input_vals[0].shape)
+
+    def gradient(self, node, output_grads):
+        return [zeros_like(node.inputs[0])]
+
+
+class ZerosLikeOp(Op):
+    def __call__(self, node_A):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.name = 'Zeroslike({})'.format(node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        assert isinstance(input_vals[0], np.ndarray)
+        return np.zeros_like(input_vals[0].shape)
+
+    def gradient(self, node, output_grads):
+        return [zeros_like(node.inputs[0])]
+
+
+class PlaceholderOp(Op):
+    """Op to feed value to a nodes."""
+
+    def __call__(self):
+        """Creates a variable node."""
+        new_node = Op.__call__(self)
+        return new_node
+
+    def compute(self, node, input_vals):
+        """No compute function since node value is fed directly in Executor."""
+        assert False, "placeholder values provided by feed_dict"
+
+    def gradient(self, node, output_grad):
+        """No gradient function since node has no inputs."""
+        return None
+
+
+def Variable(name):
+    """User defined variables in an expression.
+        e.g. x = Variable(name = "x")
+    """
+    placeholder_node = placeholder()
+    placeholder_node.name = name
+    return placeholder_node
+
+
 # Global singleton operations
 add = AddOp()
 add_const = AddByConstOp()
+zeros_like = ZerosLikeOp()
+ones_like = OnesLikeOp()
+placeholder = PlaceholderOp()
+
+
+def gradients(output_node, node_list):
+    # a map from node to a list of gradient contributions from each output node
+    node_to_output_grads_list = {}
+    # Special note on initializing gradient of output_node as oneslike_op(output_node):
+    # We are really taking a derivative of the scalar reduce_sum(output_node)
+    # instead of the vector output_node. But this is the common case for loss function.
+    node_to_output_grads_list[output_node] = [ones_like(output_node)]
+    # a map from node to the gradient of that node
+    node_to_output_grad = {}
+    # Traverse graph in reverse topological order given the output_node that we are taking gradient wrt.
+    reverse_topo_order = reversed(find_topo_sort([output_node]))
+    """TODO: Your code here"""
+    for node in reverse_topo_order:
+        output_grad = sum_node_list(node_to_output_grads_list[node])
+        node_to_output_grad[node] = output_grad
+
+        input_grads_list = node.op.gradient(node, output_grad)
+        for i in range(len(node.inputs)):
+            if node.inputs[i] not in node_to_output_grads_list:
+                node_to_output_grads_list[node.inputs[i]] = []
+            node_to_output_grads_list[node.inputs[i]].append(input_grads_list[i])
+
+    # Collect results for gradients requested.
+    grad_node_list = [node_to_output_grad[node] for node in node_list]
+    return grad_node_list
 
 
 class Executor:
@@ -203,10 +297,9 @@ class Executor:
         for node in topo_order:
             if node in feed_dict:
                 continue
-            inputs = [node_to_eval_map[n] for n in node.input]
-            value = node.op.compute(inputs)
+            inputs = [node_to_eval_map[n] for n in node.inputs]
+            value = node.op.compute(node, inputs)
             node_to_eval_map[node] = value
 
         # select values of nodes given in feed_dict
         return [node_to_eval_map[node] for node in self.eval_list]
-
