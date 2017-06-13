@@ -1,1 +1,9 @@
+*.pyc
+*.so
+*.pyd
+*~
 
+build/
+dist/
+.idea
+indi.egg-info/

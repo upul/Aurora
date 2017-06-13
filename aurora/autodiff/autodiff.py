@@ -179,7 +179,7 @@ class Executor:
     def __init__(self, eval_list):
         """
         Executor computes values for a given subset of nodes in a computation graph.
-        
+
         Parameters:
         -----------
         :param eval_list: Values of the nodes of this list need to be computed
