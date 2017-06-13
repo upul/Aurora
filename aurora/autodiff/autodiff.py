@@ -1,5 +1,5 @@
 import numpy as np
-
+from .helper import find_topo_sort
 
 class Node(object):
     """ Node object represents a node in the computational graph"""
@@ -197,5 +197,15 @@ class Executor:
         -------
         :return: Values of the nodes specified by the eval_list
         """
+        node_to_eval_map = dict(feed_dict)
+        topo_order = find_topo_sort(self.eval_list)
+        for node in topo_order:
+            if node in feed_dict:
+                continue
+            inputs = [node_to_eval_map[n] for n in node.input]
+            value = node.op.compute(inputs)
+            node_to_eval_map[node] = value
 
+        # select values of nodes given in feed_dict
+        return [node_to_eval_map[node] for node in self.eval_list]
 
