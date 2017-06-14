@@ -36,10 +36,17 @@ class Node(object):
         else:
             return mul_const(self, other)
 
+    def __truediv__(self, other):
+        if isinstance(other, Node):
+            return div(self, other)
+        else:
+            return div_const(self, other)
+
     # Allow left-hand-side add and multiply.
     __radd__ = __add__
     __rmul__ = __mul__
     __rsub__ = __sub__
+    __rdiv__ = __truediv__
 
 
 class Op(object):
@@ -280,6 +287,37 @@ class MulByConstOp(Op):
         return [node.const * output_grads]
 
 
+class DivOp(Op):
+    def __call__(self, node_A, node_B):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A, node_B]
+        new_node.name = '({0:s}/{1:s})'.format(node_A.name, node_B.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 2
+        return input_vals[0] / input_vals[1]
+
+    def gradient(self, node, output_grads):
+        return [output_grads / node.inputs[1], -1.0 * output_grads * node.inputs[0] / (node.inputs[1] * node.inputs[1])]
+
+
+class DivByConstOp(Op):
+    def __call__(self, node_A, const_val):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.const = const_val
+        new_node.name = '({0:s}/{1:f})'.format(node_A.name, const_val)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        return input_vals[0] / node.const
+
+    def gradient(self, node, output_grads):
+        return [output_grads / node.const]
+
+
 class PlaceholderOp(Op):
     """Op to feed value to a nodes."""
 
@@ -313,6 +351,8 @@ sub = SubOp()
 sub_const = SubByConstOp()
 mul = MulOp()
 mul_const = MulByConstOp()
+div = DivOp()
+div_const = DivByConstOp()
 zeros_like = ZerosLikeOp()
 ones_like = OnesLikeOp()
 placeholder = PlaceholderOp()
