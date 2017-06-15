@@ -335,6 +335,21 @@ class PlaceholderOp(Op):
         return None
 
 
+class ReduceSumOp(Op):
+    def __call__(self, node_A):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.name = 'ReduceSum({0:s})'.format(node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        return np.sum(input_vals[0], axis=0)
+
+    def gradient(self, node, output_grads):
+        return [output_grads]
+
+
 def Variable(name):
     """User defined variables in an expression.
         e.g. x = Variable(name = "x")
@@ -356,6 +371,7 @@ div_const = DivByConstOp()
 zeros_like = ZerosLikeOp()
 ones_like = OnesLikeOp()
 placeholder = PlaceholderOp()
+reduce_sum = ReduceSumOp()
 
 
 def gradients(output_node, node_list):

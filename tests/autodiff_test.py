@@ -134,3 +134,19 @@ def test_div_by_const():
     assert isinstance(y, ad.Node)
     assert np.array_equal(y_val, x2_val / 2.0)
     assert np.array_equal(grad_x2_val, np.ones_like(x2_val) / 2.0)
+
+
+def test_reduce_sum():
+    x2 = ad.Variable(name='x2')
+    y = ad.reduce_sum(x2)
+
+    grad_x2 = ad.gradients(y, [x2])
+    executor = ad.Executor([y, grad_x2])
+    x2_val = np.array([[1, 2, 3], [4, 5, 6]])
+    y_val, grad_x2_val = executor.run(feed_dict={x2: x2_val})
+
+    # asserts
+    assert isinstance(y_val, ad.Node)
+    assert np.array_equal(y_val, np.array([5, 7, 9]))
+    assert np.array_equal(grad_x2_val, np.array([1, 1, 1]))
+
