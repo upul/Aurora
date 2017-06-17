@@ -152,7 +152,7 @@ class AddOp(Op):
         -------
         :return: A list of gradient contribution of output nodes
         """
-        return [output_grads[0], output_grads[1]]
+        return [output_grads, output_grads]
 
 
 class AddByConstOp(Op):
