@@ -350,6 +350,45 @@ class ReduceSumOp(Op):
         return [output_grads]
 
 
+class BroadcastToOp(Op):
+    def __call__(self, node_A, node_B):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A, node_B]
+        new_node.name = 'BroadcastTo({0:s}, {1:s}.shape)'.format(node_A.name, node_B.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 2
+        return np.broadcast_to(input_vals[0], input_vals[1].shape)
+
+    def gradient(self, node, output_grads):
+        grad_A = reduce_sum(output_grads)
+        grad_B = zeros_like(node.inputs[1])
+        return [grad_A, grad_B]
+
+
+class MatMulOp(Op):
+    def __call__(self, node_A, node_B, trans_A=False, trans_B=False):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A, node_B]
+        new_node.trans_A = trans_A
+        new_node.trans_B = trans_B
+        new_node.name = 'MatMul({0:s}, {1:s}'.format(node_A.name, node_B.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 2
+        if node.trans_A:
+            input_vals[0] = input_vals[0].T
+        if node.trans_B:
+            input_vals[1] = input_vals[1].T
+        return np.dot(input_vals[0], input_vals[1])
+
+    def gradient(self, node, output_grads):
+        grad_A = matmul(output_grads, node.inputs[1], trans_A = False, trans_B = True)
+        grad_B = matmul(node.inputs[0], output_grads,  trans_A = True, trans_B = False)
+        return [grad_A, grad_B]
+
 def Variable(name):
     """User defined variables in an expression.
         e.g. x = Variable(name = "x")
@@ -372,6 +411,8 @@ zeros_like = ZerosLikeOp()
 ones_like = OnesLikeOp()
 placeholder = PlaceholderOp()
 reduce_sum = ReduceSumOp()
+broadcast_to = BroadcastToOp()
+matmul = MatMulOp()
 
 
 def gradients(output_node, node_list):
