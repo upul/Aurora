@@ -1,13 +1,13 @@
 import numpy as np
 import aurora.autodiff as ad
-from aurora.optim import SGD
+from aurora.optim import Adam
 import matplotlib.pyplot as plt
 import seaborn as sbn;
 
 sbn.set()
-num_point = 250
+num_point = 300
 n_epoch = 1500
-lr = 0.01
+lr = 0.06
 
 x = ad.Variable(name='x')
 y = ad.Variable(name='y')
@@ -26,7 +26,7 @@ w_val = np.zeros((1, 1))
 b_val = np.zeros(1)
 executor = ad.Executor([cost, grad_cost_w, grad_b])
 
-sgd = SGD(cost, optim_dict={W: w_val, b: b_val}, lr=lr)
+sgd = Adam(cost, optim_dict={W: w_val, b: b_val}, lr=lr)
 for i in range(n_epoch):
     step_params = sgd.step(feed_dict={x: x_data, y: y_data})
     if i % 100 == 0:

@@ -1,3 +1,4 @@
 from .sgd import SGD
+from .adam import Adam
 
-__all__ = ['SGD']
+__all__ = ['SGD', 'Adam']
