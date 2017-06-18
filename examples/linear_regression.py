@@ -31,8 +31,8 @@ for i in range(n_epoch):
     if i % 100 == 0:
         print('iter: {0:>5d} cost: {1:>8.5f}, W: {2:>8.5f} b: {3:>8.5f}'.format(i, cost_val[0],
                                                                                 w_val[0,0], b_val[0]))
-    w_val -= lr * grad_cost_w_val
-    b_val -= lr * grad_b_val
+    w_val += -lr * grad_cost_w_val
+    b_val += -lr * grad_b_val
 
 plt.scatter(x_data, y_data, c='#dd1c77')
 plt.plot(x_data, w_val[0, 0] * x_data + b_val[0], c='#c994c7', linewidth=3)

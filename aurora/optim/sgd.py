@@ -14,7 +14,7 @@ class SGD(Base):
 
         parameters = list(self.optim_dict.keys())
         for index in range(len(parameters)):
-            self.optim_dict[parameters[index]] -= self.lr * exe_output[index + 1]
+            self.optim_dict[parameters[index]] += -self.lr * exe_output[index + 1]
 
         step_param = self.optim_dict.copy()
         step_param[self.cost] = exe_output[0]
