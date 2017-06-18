@@ -398,6 +398,11 @@ def Variable(name):
     return placeholder_node
 
 
+def LeruOp(Op):
+    def __call__(self, node_A):
+        pass
+
+
 # Global singleton operations
 add = AddOp()
 add_const = AddByConstOp()

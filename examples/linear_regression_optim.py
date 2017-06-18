@@ -26,9 +26,9 @@ w_val = np.zeros((1, 1))
 b_val = np.zeros(1)
 executor = ad.Executor([cost, grad_cost_w, grad_b])
 
-sgd = Adam(cost, optim_dict={W: w_val, b: b_val}, lr=lr)
+optimizer = Adam(cost, optim_dict={W: w_val, b: b_val}, lr=lr)
 for i in range(n_epoch):
-    step_params = sgd.step(feed_dict={x: x_data, y: y_data})
+    step_params = optimizer.step(feed_dict={x: x_data, y: y_data})
     if i % 100 == 0:
         print('iter: {0:>5d} cost: {1:>8.5f}, W: {2:>8.5f} b: {3:>8.5f}'.format(i,
                                                                                 step_params[cost][0],
