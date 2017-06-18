@@ -250,7 +250,7 @@ class ZerosLikeOp(Op):
     def compute(self, node, input_vals):
         assert len(input_vals) == 1
         assert isinstance(input_vals[0], np.ndarray)
-        return np.zeros_like(input_vals[0].shape)
+        return np.zeros(input_vals[0].shape)
 
     def gradient(self, node, output_grads):
         return [zeros_like(node.inputs[0])]
