@@ -398,8 +398,14 @@ def Variable(name):
     return placeholder_node
 
 
-def LeruOp(Op):
+class ReluOp(Op):
     def __call__(self, node_A):
+        pass
+
+    def compute(self, node, input_vals):
+        pass
+
+    def gradient(self, node, output_grads):
         pass
 
 
