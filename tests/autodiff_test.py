@@ -188,3 +188,16 @@ def test_matmul_two_vars():
     assert np.array_equal(y_val, expected_yval)
     assert np.array_equal(grad_x2_val, expected_grad_x2_val)
     assert np.array_equal(grad_x3_val, expected_grad_x3_val)
+
+def test_relu_test():
+    x2 = ad.Variable(name='x2')
+    y = ad.relu(x2)
+
+    grad_x2, = ad.gradients(y, [x2])
+    executor = ad.Executor([y, grad_x2])
+    x2_val = np.array([[-1, 2, 3], [1, -2, 0]])
+    y_val, grad_x2_val = executor.run(feed_dict={x2: x2_val})
+    expected_y_val = np.array([[0, 2, 3], [1, 0, 0]])
+    expected_x2_grad = np.array([[0, 1, 1], [1, 0, 0]])
+    assert np.array_equal(y_val, expected_y_val)
+    assert np.array_equal(grad_x2_val, expected_x2_grad)

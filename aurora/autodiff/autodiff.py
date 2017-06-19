@@ -385,9 +385,10 @@ class MatMulOp(Op):
         return np.dot(input_vals[0], input_vals[1])
 
     def gradient(self, node, output_grads):
-        grad_A = matmul(output_grads, node.inputs[1], trans_A = False, trans_B = True)
-        grad_B = matmul(node.inputs[0], output_grads,  trans_A = True, trans_B = False)
+        grad_A = matmul(output_grads, node.inputs[1], trans_A=False, trans_B=True)
+        grad_B = matmul(node.inputs[0], output_grads, trans_A=True, trans_B=False)
         return [grad_A, grad_B]
+
 
 def Variable(name):
     """User defined variables in an expression.
@@ -400,13 +401,32 @@ def Variable(name):
 
 class ReluOp(Op):
     def __call__(self, node_A):
-        pass
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.name = 'Relu({0:s})'.format(node_A.name)
+        return new_node
 
     def compute(self, node, input_vals):
-        pass
+        assert len(input_vals) == 1
+        return np.maximum(input_vals[0], 0)
 
     def gradient(self, node, output_grads):
-        pass
+        return [relu_grad(node.inputs[0]) * output_grads]
+
+
+class ReluGradOp(Op):
+    def __call__(self, node_A):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.name = 'ReluGrad({0:s})'.format(node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        return np.sign(np.maximum(input_vals[0], 0))
+
+    def gradient(self, node, output_grads):
+        raise NotImplementedError
 
 
 # Global singleton operations
@@ -424,6 +444,8 @@ placeholder = PlaceholderOp()
 reduce_sum = ReduceSumOp()
 broadcast_to = BroadcastToOp()
 matmul = MatMulOp()
+relu = ReluOp()
+relu_grad = ReluGradOp()
 
 
 def gradients(output_node, node_list):
