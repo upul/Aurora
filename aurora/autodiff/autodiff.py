@@ -418,16 +418,16 @@ def Variable(name):
     return placeholder_node
 
 
-def Parameter(name, state):
+def Parameter(name, init):
     """
     example: w = Parameter(name='w', state=...)
     :param name:
-    :param state:
+    :param init:
     :return:
     """
     parameter_node = parameter()
     parameter_node.name = name
-    parameter_node.const = state
+    parameter_node.const = init
     return parameter_node
 
 

@@ -11,8 +11,8 @@ lr = 0.01
 X = ad.Variable(name='x')
 y = ad.Variable(name='y')
 
-W = ad.Parameter(name='W', state=np.zeros((1, 1)))
-b = ad.Parameter(name='b', state=np.zeros(1))
+W = ad.Parameter(name='W', init=np.zeros((1, 1)))
+b = ad.Parameter(name='b', init=np.zeros(1))
 
 z = ad.matmul(X, W)
 output = z + ad.broadcast_to(b, z)

@@ -1,14 +1,12 @@
 import numpy as np
 import aurora.autodiff as ad
-from aurora.optim import Adam
 from aurora.optim import SGD
-import matplotlib.pyplot as plt
-import seaborn as sbn;
 
 np.random.seed(0)
 N = 100  # number of points per class
 D = 2  # dimensionality
 K = 3  # number of classes
+H = 150
 X_data = np.zeros((N * K, D))
 y_data = np.zeros(N * K, dtype='uint8')
 for j in range(K):
@@ -24,45 +22,31 @@ y_one_hot[range(N * K), y_data] = 1
 X = ad.Variable(name="X")
 y = ad.Variable(name='y')
 
-W1 = ad.Variable(name="W1")
-b1 = ad.Variable(name="b1")
+W1 = ad.Parameter(name="W1", init=0.01 * np.random.randn(D, H))
+b1 = ad.Parameter(name="b1", init=np.zeros(H))
 
-W2 = ad.Variable(name="W2")
-b2 = ad.Variable(name="b2")
+W2 = ad.Parameter(name="W2", init=0.01 * np.random.randn(H, K))
+b2 = ad.Parameter(name="b2", init=np.zeros(K))
 
 z1 = ad.matmul(X, W1)
-hid1 = z1 + ad.broadcast_to(b1, z1)
-act1 = ad.relu(hid1)
+hidden_1 = z1 + ad.broadcast_to(b1, z1)
+activation_1 = ad.relu(hidden_1)
+z2 = ad.matmul(activation_1, W2)
+hidden_2 = z2 + ad.broadcast_to(b2, z2)
+loss = ad.cross_entropy(hidden_2, y)
 
-z2 = ad.matmul(act1, W2)
-hid2 = z2 + ad.broadcast_to(b2, z2)
-
-loss = ad.cross_entropy(hid2, y)
-
-h = 150  # size of hidden layer
-W1_val = 0.01 * np.random.randn(D, h)
-b1_val = np.zeros(h)
-W2_val = 0.01 * np.random.randn(h, K)
-b2_val = np.zeros(K)
-
-learning_rate = 1e-3
+lr = 2e-3
 n_epoch = 1000
-optimizer = SGD(loss, optim_dict={W1: W1_val,
-                                   b1: b1_val,
-                                   W2: W2_val,
-                                   b2: b2_val}, lr=learning_rate)
+optimizer = SGD(loss, params=[W1, b1, W2, b2], lr=lr, momentum=0.2)
 for i in range(n_epoch):
-    step_params = optimizer.step(feed_dict={X: X_data, y: y_one_hot})
-    if i % 50 == 0:
+    loss_now = optimizer.step(feed_dict={X: X_data, y: y_one_hot})
+    if i % 100 == 0:
         fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
-        print(fmt_str.format(i, step_params[loss][0]))
+        print(fmt_str.format(i, loss_now[0]))
 
-softmax = ad.softmax(hid2)
-executor = ad.Executor([softmax])
-a, = executor.run(feed_dict={X: X_data,
-                             W1: step_params[W1],
-                             b1: step_params[b1],
-                             W2: step_params[W2], b2: step_params[b2]})
+prob = ad.softmax(hidden_2)
+executor = ad.Executor([prob])
+prob_values, = executor.run(feed_dict={X: X_data})
 
-correct = np.sum(np.equal(y_data, np.argmax(a, axis=1)))
+correct = np.sum(np.equal(y_data, np.argmax(prob_values, axis=1)))
 print('Prediction accuracy: {0:>.3f}%'.format((correct / (N * K)) * 100.00))
