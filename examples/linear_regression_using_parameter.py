@@ -33,6 +33,8 @@ for i in range(n_epoch):
     W += -lr * grad_w_val
     b += -lr * grad_b_val
 
+executor = ad.Executor([W, b])
+W_val, b_val = executor.run(feed_dict={})
 plt.scatter(x_data, y_data, c='#dd1c77')
-plt.plot(x_data, W.const * x_data + b.const, c='#c994c7', linewidth=3)
+plt.plot(x_data, x_data * W_val + b_val, c='#c994c7', linewidth=3)
 plt.show()

@@ -2,11 +2,11 @@ import aurora.autodiff as ad
 
 
 class Base:
-    def __init__(self, cost, optim_dict, lr=0.1):
+    def __init__(self, cost, params, lr=0.1):
         self.cost = cost
-        self.optim_dict = optim_dict
+        self.params = params
         self.lr = lr
-        grads = ad.gradients(cost, list(self.optim_dict.keys()))
+        grads = ad.gradients(cost, params)
         grads.insert(0, cost)
         self.executor = ad.Executor(grads)
 
