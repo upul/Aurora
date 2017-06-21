@@ -6,7 +6,7 @@ class SGD(Base):
     def __init__(self, cost, params, lr=0.1, momentum=0.9):
         super().__init__(cost, params, lr)
         self.momentum = momentum
-        self.velocity = self._init_velocity_vec(params)
+        self.velocity = [np.zeros_like(param.const)for param in params]
 
     def step(self, feed_dict):
         exe_output = self.executor.run(feed_dict)
@@ -15,9 +15,3 @@ class SGD(Base):
             self.params[i].const += self.velocity[i]
         return exe_output[0]
 
-    @staticmethod
-    def _init_velocity_vec(params):
-        vector = []
-        for param in params:
-            vector.append(np.zeros_like(param.const))
-        return vector
