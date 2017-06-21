@@ -23,11 +23,7 @@ class Node(object):
         if isinstance(other, Node):
             return add(self, other)
         else:
-            if isinstance(self.op, ParameterOp):
-                self.const += other
-                return self
-            else:
-                return add_const(self, other)
+            return add_const(self, other)
 
     def __sub__(self, other):
         if isinstance(other, Node):
@@ -340,20 +336,6 @@ class PlaceholderOp(Op):
         return None
 
 
-class ParameterOp(Op):
-    def __call__(self):
-        new_node = Op.__call__(self)
-        return new_node
-
-    def compute(self, node, input_vals):
-        """No compute function since node value is fed directly in Executor."""
-        assert False, "placeholder values provided by feed_dict"
-
-    def gradient(self, node, output_grad):
-        """No gradient function since node has no inputs."""
-        return None
-
-
 class ReduceSumOp(Op):
     def __call__(self, node_A):
         new_node = Op.__call__(self)
@@ -425,7 +407,7 @@ def Parameter(name, init):
     :param init:
     :return:
     """
-    parameter_node = parameter()
+    parameter_node = placeholder()
     parameter_node.name = name
     parameter_node.const = init
     return parameter_node
@@ -514,7 +496,6 @@ relu_grad = ReluGradOp()
 softmax = SoftmaxOp()
 cross_entropy = CrossEntropyOp()
 placeholder = PlaceholderOp()
-parameter = ParameterOp()
 
 def gradients(output_node, node_list):
     # a map from node to a list of gradient contributions from each output node
@@ -576,7 +557,7 @@ class Executor:
             if node in feed_dict:
                 continue
 
-            if isinstance(node.op, ParameterOp):
+            if isinstance(node.op, PlaceholderOp) and node.const is not None:
                 node_to_eval_map[node] = node.const
                 continue
 

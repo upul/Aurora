@@ -223,7 +223,7 @@ def test_cross_entropy():
 def test_matmul_var_and_param():
     x2 = ad.Variable(name="x2")
     w2_val = np.array([[7, 8, 9], [10, 11, 12]]) # 2x3
-    w2 = ad.Parameter(name="w2", state=w2_val)
+    w2 = ad.Parameter(name="w2", init=w2_val)
     y = ad.matmul(x2, w2)
 
     grad_x2, grad_w2 = ad.gradients(y, [x2, w2])
