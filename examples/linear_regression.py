@@ -28,9 +28,10 @@ executor = ad.Executor([cost, grad_cost_w, grad_b])
 for i in range(n_epoch):
     # evaluate the graph
     cost_val, grad_cost_w_val, grad_b_val = executor.run(feed_dict={x: x_data, W: w_val, y: y_data, b: b_val})
-    if i % 100 == 0:
-        print('iter: {0:>5d} cost: {1:>8.5f}, W: {2:>8.5f} b: {3:>8.5f}'.format(i, cost_val[0],
-                                                                                w_val[0, 0], b_val[0]))
+    if i <= 10 or (i <= 100 and i % 10 == 0) or (i <= 1000 and i % 100 == 0):
+        fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}, W: {2:>8.5f} b: {3:>8.5f}'
+        print(fmt_str.format(i, cost_val[0], w_val[0, 0], b_val[0]))
+
     w_val += -lr * grad_cost_w_val
     b_val += -lr * grad_b_val
 

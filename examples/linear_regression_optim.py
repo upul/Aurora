@@ -12,8 +12,8 @@ lr = 0.002
 X = ad.Variable(name='x')
 y = ad.Variable(name='y')
 
-W = ad.Parameter(name='W', state=np.zeros((1, 1)))
-b = ad.Parameter(name='b', state=np.zeros(1))
+W = ad.Parameter(name='W', init=np.zeros((1, 1)))
+b = ad.Parameter(name='b', init=np.zeros(1))
 
 z = ad.matmul(X, W)
 output = z + ad.broadcast_to(b, z)
@@ -25,7 +25,7 @@ y_data = 2.0 * x_data + np.random.uniform(-0.5, 0.5, (num_point, 1)) + 1.5 * np.
 optimizer = SGD(cost, params=[W, b], lr=lr)
 for i in range(n_epoch):
     cost_now = optimizer.step(feed_dict={X: x_data, y: y_data})
-    if i % 100 == 0:
+    if i <= 10 or (i <= 100 and i % 10 == 0) or (i <= 1000 and i % 100 == 0):
         fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
         print(fmt_str.format(i, cost_now[0]))
 

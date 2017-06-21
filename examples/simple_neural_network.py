@@ -36,11 +36,11 @@ hidden_2 = z2 + ad.broadcast_to(b2, z2)
 loss = ad.cross_entropy(hidden_2, y)
 
 lr = 2e-3
-n_epoch = 1000
-optimizer = SGD(loss, params=[W1, b1, W2, b2], lr=lr, momentum=0.2)
+n_epoch = 10001
+optimizer = SGD(loss, params=[W1, b1, W2, b2], lr=lr, momentum=0.9)
 for i in range(n_epoch):
     loss_now = optimizer.step(feed_dict={X: X_data, y: y_one_hot})
-    if i % 100 == 0:
+    if i <= 10 or (i <= 100 and i % 10 == 0) or (i <= 1000 and i % 100 == 0):
         fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
         print(fmt_str.format(i, loss_now[0]))
 
