@@ -23,7 +23,11 @@ class Node(object):
         if isinstance(other, Node):
             return add(self, other)
         else:
-            return add_const(self, other)
+            if isinstance(self.op, ParameterOp):
+                self.const += other
+                return self
+            else:
+                return add_const(self, other)
 
     def __sub__(self, other):
         if isinstance(other, Node):
@@ -337,10 +341,8 @@ class PlaceholderOp(Op):
 
 
 class ParameterOp(Op):
-    def __call__(self, name, state):
+    def __call__(self):
         new_node = Op.__call__(self)
-        new_node.name = name
-        new_node.state = state
         return new_node
 
     def compute(self, node, input_vals):
@@ -423,7 +425,9 @@ def Parameter(name, state):
     :param state:
     :return:
     """
-    parameter_node = parameter(name, state)
+    parameter_node = parameter()
+    parameter_node.name = name
+    parameter_node.const = state
     return parameter_node
 
 
@@ -502,7 +506,6 @@ div = DivOp()
 div_const = DivByConstOp()
 zeros_like = ZerosLikeOp()
 ones_like = OnesLikeOp()
-placeholder = PlaceholderOp()
 reduce_sum = ReduceSumOp()
 broadcast_to = BroadcastToOp()
 matmul = MatMulOp()
@@ -510,8 +513,8 @@ relu = ReluOp()
 relu_grad = ReluGradOp()
 softmax = SoftmaxOp()
 cross_entropy = CrossEntropyOp()
+placeholder = PlaceholderOp()
 parameter = ParameterOp()
-
 
 def gradients(output_node, node_list):
     # a map from node to a list of gradient contributions from each output node
@@ -574,7 +577,7 @@ class Executor:
                 continue
 
             if isinstance(node.op, ParameterOp):
-                node_to_eval_map[node] = node.state
+                node_to_eval_map[node] = node.const
                 continue
 
             inputs = [node_to_eval_map[n] for n in node.inputs]
