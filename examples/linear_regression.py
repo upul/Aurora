@@ -30,7 +30,7 @@ for i in range(n_epoch):
     cost_val, grad_cost_w_val, grad_b_val = executor.run(feed_dict={x: x_data, W: w_val, y: y_data, b: b_val})
     if i % 100 == 0:
         print('iter: {0:>5d} cost: {1:>8.5f}, W: {2:>8.5f} b: {3:>8.5f}'.format(i, cost_val[0],
-                                                                                w_val[0,0], b_val[0]))
+                                                                                w_val[0, 0], b_val[0]))
     w_val += -lr * grad_cost_w_val
     b_val += -lr * grad_b_val
 

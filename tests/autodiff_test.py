@@ -189,7 +189,8 @@ def test_matmul_two_vars():
     assert np.array_equal(grad_x2_val, expected_grad_x2_val)
     assert np.array_equal(grad_x3_val, expected_grad_x3_val)
 
-def test_relu_test():
+
+def test_relu():
     x2 = ad.Variable(name='x2')
     y = ad.relu(x2)
 
@@ -201,3 +202,45 @@ def test_relu_test():
     expected_x2_grad = np.array([[0, 1, 1], [1, 0, 0]])
     assert np.array_equal(y_val, expected_y_val)
     assert np.array_equal(grad_x2_val, expected_x2_grad)
+
+
+def test_cross_entropy():
+    x2_pred = ad.Variable(name='x2_pred')
+    x2_actu = ad.Variable(name='x2_actu')
+    y = ad.cross_entropy(x2_pred, x2_actu)
+
+    x2_pred_grad, x2_actu_grad = ad.gradients(y, [x2_pred, x2_actu])
+
+    x2_pred_val = np.array([[0.8, 0.01, 0.5], [0.8, 0.01, 0.5]])
+    x2_actu_val = np.array([[1.0, 1.0, 0], [1.0, 1.0, 0]])
+
+    executor = ad.Executor([y, x2_pred_grad, x2_actu_grad])
+    y_val, x2_pred_grad_val, x2_actu_grad_val = executor.run(feed_dict={x2_pred: x2_pred_val, x2_actu: x2_actu_val})
+    # print(x2_actu_grad_val)
+    assert True
+
+
+def test_matmul_var_and_param():
+    x2 = ad.Variable(name="x2")
+    w2_val = np.array([[7, 8, 9], [10, 11, 12]]) # 2x3
+    w2 = ad.Parameter(name="w2", state=w2_val)
+    y = ad.matmul(x2, w2)
+
+    grad_x2, grad_w2 = ad.gradients(y, [x2, w2])
+
+    executor = ad.Executor([y, grad_x2, grad_w2])
+    x2_val = np.array([[1, 2], [3, 4], [5, 6]])  # 3x2
+
+    y_val, grad_x2_val, grad_w2_val = executor.run(feed_dict={x2: x2_val})
+
+    expected_yval = np.matmul(x2_val, w2_val)
+    expected_grad_x2_val = np.matmul(np.ones_like(expected_yval), np.transpose(w2_val))
+    expected_grad_x3_val = np.matmul(np.transpose(x2_val), np.ones_like(expected_yval))
+
+    assert isinstance(y, ad.Node)
+    assert np.array_equal(y_val, expected_yval)
+    assert np.array_equal(grad_x2_val, expected_grad_x2_val)
+    assert np.array_equal(grad_w2_val, expected_grad_x3_val)
+
+
+

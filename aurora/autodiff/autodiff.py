@@ -1,6 +1,7 @@
 import numpy as np
 from .helper import find_topo_sort
 from .helper import sum_node_list
+from .helper import softmax_func
 
 
 class Node(object):
@@ -335,6 +336,22 @@ class PlaceholderOp(Op):
         return None
 
 
+class ParameterOp(Op):
+    def __call__(self, name, state):
+        new_node = Op.__call__(self)
+        new_node.name = name
+        new_node.state = state
+        return new_node
+
+    def compute(self, node, input_vals):
+        """No compute function since node value is fed directly in Executor."""
+        assert False, "placeholder values provided by feed_dict"
+
+    def gradient(self, node, output_grad):
+        """No gradient function since node has no inputs."""
+        return None
+
+
 class ReduceSumOp(Op):
     def __call__(self, node_A):
         new_node = Op.__call__(self)
@@ -399,6 +416,17 @@ def Variable(name):
     return placeholder_node
 
 
+def Parameter(name, state):
+    """
+    example: w = Parameter(name='w', state=...)
+    :param name:
+    :param state:
+    :return:
+    """
+    parameter_node = parameter(name, state)
+    return parameter_node
+
+
 class ReluOp(Op):
     def __call__(self, node_A):
         new_node = Op.__call__(self)
@@ -429,6 +457,40 @@ class ReluGradOp(Op):
         raise NotImplementedError
 
 
+class CrossEntropyOp(Op):
+    def __call__(self, node_A, node_B):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A, node_B]
+        new_node.name = 'CrossEntropy({0:s}, {1:s})'.format(node_A.name, node_B.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 2
+        pred = softmax_func(input_vals[0])
+        actual = input_vals[1]
+        return np.mean(-np.sum(actual * np.log(pred), axis=1), keepdims=True)
+
+    def gradient(self, node, output_grads):
+        grad_A = (softmax(node.inputs[0]) + -1 * node.inputs[1]) * output_grads
+        grad_B = zeros_like(node.inputs[1])
+        return [grad_A, grad_B]
+
+
+class SoftmaxOp(Op):
+    def __call__(self, node_A):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.name = 'SoftmaxOp({0:s})'.format(node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        return softmax_func(input_vals[0])
+
+    def gradient(self, node, output_grads):
+        raise NotImplementedError('Not yet implemented, Please use CrossEntropy operator')
+
+
 # Global singleton operations
 add = AddOp()
 add_const = AddByConstOp()
@@ -446,6 +508,9 @@ broadcast_to = BroadcastToOp()
 matmul = MatMulOp()
 relu = ReluOp()
 relu_grad = ReluGradOp()
+softmax = SoftmaxOp()
+cross_entropy = CrossEntropyOp()
+parameter = ParameterOp()
 
 
 def gradients(output_node, node_list):
@@ -507,9 +572,14 @@ class Executor:
         for node in topo_order:
             if node in feed_dict:
                 continue
+
+            if isinstance(node.op, ParameterOp):
+                node_to_eval_map[node] = node.state
+                continue
+
             inputs = [node_to_eval_map[n] for n in node.inputs]
             value = node.op.compute(node, inputs)
             node_to_eval_map[node] = value
 
-        # select values of nodes given in feed_dict
+        # select values of nodes given in feed_dicts
         return [node_to_eval_map[node] for node in self.eval_list]

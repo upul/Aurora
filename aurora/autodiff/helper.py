@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def find_topo_sort(node_list):
     """
 
@@ -32,3 +35,8 @@ def sum_node_list(node_list):
     from operator import add
     from functools import reduce
     return reduce(add, node_list)
+
+
+def softmax_func(data):
+    stable_values = data - np.max(data, axis=1, keepdims=True)
+    return np.exp(stable_values) / np.sum(np.exp(stable_values),  axis=1, keepdims=True)
