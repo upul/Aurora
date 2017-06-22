@@ -6,7 +6,7 @@ class SGD(Base):
     def __init__(self, cost, params, lr=0.1, momentum=0.9):
         super().__init__(cost, params, lr)
         self.momentum = momentum
-        self.velocity = [np.zeros_like(param.const)for param in params]
+        self.velocity = [np.zeros_like(param.const) for param in params]
 
     def step(self, feed_dict):
         exe_output = self.executor.run(feed_dict)
