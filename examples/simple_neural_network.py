@@ -1,9 +1,9 @@
 import numpy as np
-import aurora.autodiff as ad
-from aurora.optim import SGD
-import aurora.datasets as data
-import matplotlib.pyplot as plt
 import seaborn as sbn;
+
+import aurora.autodiff as ad
+import aurora.datasets as data
+from aurora.optim import SGD
 
 sbn.set()
 

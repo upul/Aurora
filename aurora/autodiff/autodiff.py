@@ -1,6 +1,4 @@
 import numpy as np
-from .helper import find_topo_sort
-from .helper import sum_node_list
 from .helper import softmax_func
 
 
@@ -31,6 +29,9 @@ class Node(object):
         else:
             return sub_const(self, other)
 
+    def __rsub__(self, other):
+        return ref_sub_const(self, other)
+
     def __mul__(self, other):
         if isinstance(other, Node):
             return mul(self, other)
@@ -46,7 +47,6 @@ class Node(object):
     # Allow left-hand-side add and multiply.
     __radd__ = __add__
     __rmul__ = __mul__
-    __rsub__ = __sub__
     __rdiv__ = __truediv__
 
 
@@ -223,6 +223,22 @@ class SubByConstOp(Op):
 
     def gradient(self, node, output_grads):
         return [output_grads]
+
+
+class ReflectedSubByConstOp(Op):
+    def __call__(self, node_A, const_val):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.const = const_val
+        new_node.name = '({0:f}-{1:s})'.format(const_val, node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        return node.const - input_vals[0]
+
+    def gradient(self, node, output_grads):
+        return [-1 * output_grads]
 
 
 class OnesLikeOp(Op):
@@ -477,11 +493,29 @@ class SoftmaxOp(Op):
         raise NotImplementedError('Not yet implemented, Please use CrossEntropy operator')
 
 
+class SigmoidOp(Op):
+    def __call__(self, node_A):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.name = 'Sigmoid({0:s})'.format(node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals):
+        assert len(input_vals) == 1
+        return 1 / (1 + np.exp(-1 * input_vals[0]))
+
+    def gradient(self, node, output_grads):
+        x = node.inputs[0]
+        g = sigmoid(x) * (1 - sigmoid(x))
+        return [g * output_grads]
+
+
 # Global singleton operations
 add = AddOp()
 add_const = AddByConstOp()
 sub = SubOp()
 sub_const = SubByConstOp()
+ref_sub_const = ReflectedSubByConstOp()
 mul = MulOp()
 mul_const = MulByConstOp()
 div = DivOp()
@@ -496,3 +530,4 @@ relu_grad = ReluGradOp()
 softmax = SoftmaxOp()
 cross_entropy = CrossEntropyOp()
 placeholder = PlaceholderOp()
+sigmoid = SigmoidOp()

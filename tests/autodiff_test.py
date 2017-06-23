@@ -1,5 +1,6 @@
 import aurora.autodiff as ad
 import numpy as np
+import numpy.testing as npt
 
 
 def test_dummy():
@@ -242,5 +243,17 @@ def test_matmul_var_and_param():
     assert np.array_equal(grad_x2_val, expected_grad_x2_val)
     assert np.array_equal(grad_w2_val, expected_grad_x3_val)
 
+
+def test_sigmoid_activation():
+    x2 = ad.Variable(name='x2')
+    y = ad.sigmoid(x2)
+
+    x2_val = np.array([-100, 0, 100])
+    grad_x2, = ad.gradients(y, [x2])
+    executor = ad.Executor([y, grad_x2])
+    y_val, grad_x2_val = executor.run(feed_dict={x2: x2_val})
+    npt.assert_array_almost_equal(np.array([0.000, 0.500, 1.0]), y_val)
+    print(grad_x2_val)
+    npt.assert_array_almost_equal(np.array([0, 0.25, 0]), grad_x2_val)
 
 
