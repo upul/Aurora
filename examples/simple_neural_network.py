@@ -1,5 +1,5 @@
 import numpy as np
-import seaborn as sbn;
+import seaborn as sbn
 
 import aurora.autodiff as ad
 import aurora.datasets as data

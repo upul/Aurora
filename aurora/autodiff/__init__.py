@@ -6,6 +6,7 @@ from .autodiff import broadcast_to
 from .autodiff import matmul
 from .autodiff import relu
 from .autodiff import sigmoid
+from .autodiff import tanh
 from .autodiff import cross_entropy
 from .autodiff import softmax
 from .autodiff import Parameter
@@ -13,4 +14,4 @@ from .executor import Executor
 
 __all__ = ["Variable", "Parameter", "gradients", "Node", "Executor",
            "reduce_sum", "broadcast_to", "matmul", "relu", "sigmoid",
-           "cross_entropy", "softmax"]
+           "tanh", "cross_entropy", "softmax"]
