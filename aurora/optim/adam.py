@@ -3,20 +3,17 @@ from .base import Base
 
 
 class Adam(Base):
-    def __init__(self, cost, optim_dict, lr=0.1, beta1=0.9, beta2=0.995, eps=1e-7):
-        super().__init__(cost, optim_dict, lr)
+    def __init__(self, cost, params, lr=0.1, beta1=0.9, beta2=0.995, eps=1e-7):
+        super().__init__(cost, params, lr)
         self.beta1 = beta1
         self.beta2 = beta2
-        self.vec = {key: np.zeros_like(optim_dict[key]) for key in optim_dict.keys()}
-        self.mom = {key: np.zeros_like(optim_dict[key]) for key in optim_dict.keys()}
+        self.velocity = [np.zeros_like(param.const) for param in params]
+        self.momentum = [np.zeros_like(param.const) for param in params]
         self.time_step = 0
         self.eps = eps
 
     def step(self, feed_dict):
-        feed_data = feed_dict.copy()
-        for param in list(self.optim_dict.keys()):
-            feed_data[param] = self.optim_dict[param]
-        exe_output = self.executor.run(feed_data)
+        exe_output = self.executor.run(feed_dict)
 
         parameters = list(self.optim_dict.keys())
         self.time_step += 1
