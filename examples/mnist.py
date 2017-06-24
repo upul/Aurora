@@ -1,6 +1,6 @@
 import numpy as np
 import aurora.autodiff as ad
-from aurora.optim import SGD
+from aurora.optim import Adam
 from aurora.datasets import MNIST
 
 
@@ -15,7 +15,7 @@ def do_evaluation(preactivation, dataset):
     return percentage
 
 
-dataset = MNIST(batch_size=64)
+dataset = MNIST(batch_size=128)
 batch_generator = dataset.training_batch_generator()
 
 input_size = dataset.num_features()
@@ -47,9 +47,9 @@ z3 = ad.matmul(activation_2, W3)
 hidden_3 = z3 + ad.broadcast_to(b3, z3)
 loss = ad.cross_entropy(hidden_3, y)
 
-lr = 5e-4
-n_epoch = 5000
-optimizer = SGD(loss, params=[W1, b1, W2, b2, W3, b3], lr=lr, momentum=0.9)
+lr = 1e-3
+n_epoch = 10001
+optimizer = Adam(loss, params=[W1, b1, W2, b2, W3, b3], lr=lr)
 for i in range(n_epoch):
     X_batch, y_batch = next(batch_generator)
     loss_now = optimizer.step(feed_dict={X: X_batch, y: y_batch})

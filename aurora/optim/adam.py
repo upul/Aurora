@@ -9,27 +9,23 @@ class Adam(Base):
         self.beta2 = beta2
         self.velocity = [np.zeros_like(param.const) for param in params]
         self.momentum = [np.zeros_like(param.const) for param in params]
-        self.time_step = 0
+        self.time = 0
         self.eps = eps
 
     def step(self, feed_dict):
         exe_output = self.executor.run(feed_dict)
+        self.time += 1
+        vec_hat = [np.zeros_like(param.const) for param in self.params]
+        mom_hat = [np.zeros_like(param.const) for param in self.params]
 
-        parameters = list(self.optim_dict.keys())
-        self.time_step += 1
-        vec_hat = {key: np.zeros_like(self.optim_dict[key]) for key in self.optim_dict.keys()}
-        mom_hat = {key: np.zeros_like(self.optim_dict[key]) for key in self.optim_dict.keys()}
-        for i in range(len(parameters)):
-            self.mom[parameters[i]] = self.beta1 * self.mom[parameters[i]] + (1 - self.beta1) * exe_output[i + 1]
-            mom_hat[parameters[i]] = self.mom[parameters[i]] / (1 - self.beta1 ** self.time_step)
+        for i in range(len(self.params)):
+            self.momentum[i] = self.beta1 * self.momentum[i] + (1 - self.beta1) * exe_output[i + 1]
+            mom_hat[i] = self.momentum[i] / (1 - self.beta1 ** self.time)
 
-            self.vec[parameters[i]] = self.beta2 * self.vec[parameters[i]] + (1 - self.beta2) * (exe_output[i + 1] ** 2)
-            vec_hat[parameters[i]] = self.vec[parameters[i]] / (1 - self.beta2 ** self.time_step)
+            self.velocity[i] = self.beta2 * self.velocity[i] + (1 - self.beta2) * (exe_output[i + 1] ** 2)
+            vec_hat[i] = self.velocity[i] / (1 - self.beta2 ** self.time)
 
-        for i in range(len(parameters)):
-            self.optim_dict[parameters[i]] += -self.lr * mom_hat[parameters[i]] / (
-            np.sqrt(vec_hat[parameters[i]]) + self.eps)
+        for i in range(len(self.params)):
+            self.params[i].const += -self.lr * mom_hat[i] / (np.sqrt(vec_hat[i]) + self.eps)
 
-        step_param = self.optim_dict.copy()
-        step_param[self.cost] = exe_output[0]
-        return step_param
+        return exe_output[0]
