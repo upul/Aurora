@@ -1,5 +1,5 @@
 from .autodiff import PlaceholderOp
-from .helper import find_topo_sort
+from .utils import find_topo_sort
 
 
 class Executor:
@@ -35,6 +35,7 @@ class Executor:
             if node in feed_dict:
                 continue
 
+            # TODO: following if condition looks like a hack. Find a better approach
             if isinstance(node.op, PlaceholderOp) and node.const is not None:
                 node_to_eval_map[node] = node.const
                 continue

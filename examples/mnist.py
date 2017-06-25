@@ -48,7 +48,7 @@ hidden_3 = z3 + ad.broadcast_to(b3, z3)
 loss = ad.cross_entropy(hidden_3, y)
 
 lr = 1e-3
-n_epoch = 10001
+n_epoch = 7001
 optimizer = Adam(loss, params=[W1, b1, W2, b2, W3, b3], lr=lr)
 for i in range(n_epoch):
     X_batch, y_batch = next(batch_generator)

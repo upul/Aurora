@@ -1,5 +1,5 @@
-from .helper import sum_node_list
-from .helper import find_topo_sort
+from .utils import sum_node_list
+from .utils import find_topo_sort
 from .autodiff import ones_like
 
 
@@ -14,7 +14,6 @@ def gradients(output_node, node_list):
     node_to_output_grad = {}
     # Traverse graph in reverse topological order given the output_node that we are taking gradient wrt.
     reverse_topo_order = reversed(find_topo_sort([output_node]))
-    """TODO: Your code here"""
     for node in reverse_topo_order:
         output_grad = sum_node_list(node_to_output_grads_list[node])
         node_to_output_grad[node] = output_grad

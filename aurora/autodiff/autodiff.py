@@ -1,5 +1,5 @@
 import numpy as np
-from .helper import softmax_func
+from .utils import softmax_func
 
 
 class Node(object):
