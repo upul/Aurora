@@ -5,7 +5,7 @@ import aurora.autodiff as ad
 
 def measure_accuracy(activation, data):
     X_val, y_val = data
-    prob = ad.softmax(activation)
+    prob = au.nn.softmax(activation)
     executor = ad.Executor([prob])
     prob_val, = executor.run(feed_dict={X: X_val})
 
@@ -49,7 +49,7 @@ activation_2 = au.nn.relu(hidden_2)
 
 z3 = ad.matmul(activation_2, W3)
 hidden_3 = z3 + ad.broadcast_to(b3, z3)
-loss = au.nn.cross_entropy(hidden_3, y)
+loss = au.nn.cross_entropy_with_logits(hidden_3, y)
 
 lr = 1e-3  # learning rate
 n_iter = 7001  # number of iterations

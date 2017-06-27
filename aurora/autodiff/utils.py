@@ -35,8 +35,3 @@ def sum_node_list(node_list):
     from operator import add
     from functools import reduce
     return reduce(add, node_list)
-
-
-def softmax_func(x):
-    stable_values = x - np.max(x, axis=1, keepdims=True)
-    return np.exp(stable_values) / np.sum(np.exp(stable_values),  axis=1, keepdims=True)

@@ -1,6 +1,4 @@
 import numpy as np
-from .utils import softmax_func
-
 
 class Node(object):
     """ Node object represents a node in the computational graph"""
@@ -445,22 +443,6 @@ class Conv2dOp(Op):
     def gradient(self, node, output_grads):
         pass
 
-
-class SoftmaxOp(Op):
-    def __call__(self, node_A):
-        new_node = Op.__call__(self)
-        new_node.inputs = [node_A]
-        new_node.name = 'SoftmaxOp({0:s})'.format(node_A.name)
-        return new_node
-
-    def compute(self, node, input_vals):
-        assert len(input_vals) == 1
-        return softmax_func(input_vals[0])
-
-    def gradient(self, node, output_grads):
-        raise NotImplementedError('Not yet implemented, Please use CrossEntropy operator')
-
-
 # Global singleton operations
 add = AddOp()
 add_const = AddByConstOp()
@@ -476,5 +458,4 @@ ones_like = OnesLikeOp()
 reduce_sum = ReduceSumOp()
 broadcast_to = BroadcastToOp()
 matmul = MatMulOp()
-softmax = SoftmaxOp()
 placeholder = PlaceholderOp()

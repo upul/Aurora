@@ -25,7 +25,7 @@ activation_1 = au.nn.relu(hidden_1)
 
 z2 = ad.matmul(activation_1, W2)
 hidden_2 = z2 + ad.broadcast_to(b2, z2)
-loss = au.nn.cross_entropy(hidden_2, y)
+loss = au.nn.cross_entropy_with_logits(hidden_2, y)
 
 lr = 1e-3
 n_epoch = 1001

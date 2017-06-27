@@ -1,13 +1,12 @@
 import numpy as np
+import aurora as au
 import aurora.autodiff as ad
-import aurora.datasets as data
-from aurora.optim import SGD
 
 D = 2
 H = 150
 K = 3
 N = 100
-X_data, y_data, y_data_encoded = data.spiral(K, D, N, 0)
+X_data, y_data, y_data_encoded = au.datasets.spiral(K, D, N, 0)
 
 x = ad.Variable(name="x")
 y = ad.Variable(name='y')
@@ -17,12 +16,12 @@ b = ad.Parameter(name="b", init=np.zeros(K))
 
 z = ad.matmul(x, W)
 hid_1 = z + ad.broadcast_to(b, z)
-loss = ad.cross_entropy(hid_1, y)
+loss = au.nn.cross_entropy_with_logits(hid_1, y)
 
 n_epoch = 1000
 lr = 0.001
 
-optimizer = SGD(loss, params=[W, b], lr=lr, momentum=0.9)
+optimizer = au.optim.SGD(loss, params=[W, b], lr=lr, momentum=0.9)
 
 for i in range(n_epoch):
     loss_now = optimizer.step(feed_dict={x: X_data, y: y_data_encoded})
@@ -30,7 +29,7 @@ for i in range(n_epoch):
         fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
         print(fmt_str.format(i, loss_now[0]))
 
-prob = ad.softmax(hid_1)
+prob = au.nn.softmax(hid_1)
 executor = ad.Executor([prob])
 prob_val, = executor.run(feed_dict={x: X_data})
 

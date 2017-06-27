@@ -153,7 +153,7 @@ def test_reduce_sum():
     assert np.array_equal(grad_x2_val, np.array([1, 1, 1]))
 
 
-def test_reduce_sum():
+def test_broadcast_to():
     x2 = ad.Variable(name='x2')
     x3 = ad.Variable(name='x3')
     y = ad.broadcast_to(x2, x3)
@@ -209,7 +209,7 @@ def test_relu():
 def test_cross_entropy():
     x2_pred = ad.Variable(name='x2_pred')
     x2_actu = ad.Variable(name='x2_actu')
-    y = au.nn.cross_entropy(x2_pred, x2_actu)
+    y = au.nn.cross_entropy_with_logits(x2_pred, x2_actu)
 
     x2_pred_grad, x2_actu_grad = ad.gradients(y, [x2_pred, x2_actu])
 
@@ -224,7 +224,7 @@ def test_cross_entropy():
 
 def test_matmul_var_and_param():
     x2 = ad.Variable(name="x2")
-    w2_val = np.array([[7, 8, 9], [10, 11, 12]]) # 2x3
+    w2_val = np.array([[7, 8, 9], [10, 11, 12]])  # 2x3
     w2 = ad.Parameter(name="w2", init=w2_val)
     y = ad.matmul(x2, w2)
 
@@ -247,7 +247,7 @@ def test_matmul_var_and_param():
 
 def test_sigmoid_activation():
     x2 = ad.Variable(name='x2')
-    y = ad.sigmoid(x2)
+    y = au.nn.sigmoid(x2)
 
     x2_val = np.array([-100, 0, 100])
     grad_x2, = ad.gradients(y, [x2])
@@ -256,5 +256,3 @@ def test_sigmoid_activation():
     npt.assert_array_almost_equal(np.array([0.000, 0.500, 1.0]), y_val)
     print(grad_x2_val)
     npt.assert_array_almost_equal(np.array([0, 0.25, 0]), grad_x2_val)
-
-

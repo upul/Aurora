@@ -1,6 +1,7 @@
 import numpy as np
-from aurora.autodiff.autodiff import Op, zeros_like, softmax
-from aurora.autodiff.utils import softmax_func
+from aurora.autodiff.autodiff import Op, zeros_like
+from .utils import softmax_func
+from .activations import softmax
 
 
 class CrossEntropyOp(Op):
@@ -21,5 +22,8 @@ class CrossEntropyOp(Op):
         grad_B = zeros_like(node.inputs[1])
         return [grad_A, grad_B]
 
+# TODO (upul) MSE
+# TODO (upul) RMSE
+
 # Global singleton operations
-cross_entropy = CrossEntropyOp()
+cross_entropy_with_logits = CrossEntropyOp()
