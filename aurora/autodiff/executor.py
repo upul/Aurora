@@ -35,7 +35,7 @@ class Executor:
             if node in feed_dict:
                 continue
 
-            # TODO: following if condition looks like a hack. Find a better approach
+            # TODO (upul): following if condition looks like a hack. Find a better approach
             if isinstance(node.op, PlaceholderOp) and node.const is not None:
                 node_to_eval_map[node] = node.const
                 continue

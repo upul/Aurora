@@ -36,7 +36,7 @@ for i in range(n_epoch):
         fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
         print(fmt_str.format(i, loss_now[0]))
 
-prob = ad.softmax(hidden_2)
+prob = au.nn.softmax(hidden_2)
 executor = ad.Executor([prob])
 prob_values, = executor.run(feed_dict={X: X_data})
 
