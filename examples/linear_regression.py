@@ -1,7 +1,7 @@
 import numpy as np
 import aurora.autodiff as ad
 import matplotlib.pyplot as plt
-import seaborn as sbn;
+import seaborn as sbn
 
 sbn.set()
 num_point = 250

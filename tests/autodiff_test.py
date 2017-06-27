@@ -1,3 +1,4 @@
+import aurora as au
 import aurora.autodiff as ad
 import numpy as np
 import numpy.testing as npt
@@ -193,7 +194,7 @@ def test_matmul_two_vars():
 
 def test_relu():
     x2 = ad.Variable(name='x2')
-    y = ad.relu(x2)
+    y = au.nn.relu(x2)
 
     grad_x2, = ad.gradients(y, [x2])
     executor = ad.Executor([y, grad_x2])
@@ -208,7 +209,7 @@ def test_relu():
 def test_cross_entropy():
     x2_pred = ad.Variable(name='x2_pred')
     x2_actu = ad.Variable(name='x2_actu')
-    y = ad.cross_entropy(x2_pred, x2_actu)
+    y = au.nn.cross_entropy(x2_pred, x2_actu)
 
     x2_pred_grad, x2_actu_grad = ad.gradients(y, [x2_pred, x2_actu])
 

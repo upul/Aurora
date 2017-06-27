@@ -1,17 +1,14 @@
 import numpy as np
-import seaborn as sbn
-
+import aurora as au
 import aurora.autodiff as ad
-import aurora.datasets as data
-from aurora.optim import SGD
-
+import seaborn as sbn
 sbn.set()
 
 D = 2
 H = 150
 K = 3
 N = 100
-X_data, y_data, y_data_encoded = data.spiral(K, D, N, 0)
+X_data, y_data, y_data_encoded = au.datasets.spiral(K, D, N, 0)
 
 X = ad.Variable(name="X")
 y = ad.Variable(name='y')
@@ -24,15 +21,15 @@ b2 = ad.Parameter(name="b2", init=np.zeros(K))
 
 z1 = ad.matmul(X, W1)
 hidden_1 = z1 + ad.broadcast_to(b1, z1)
-activation_1 = ad.relu(hidden_1)
+activation_1 = au.nn.relu(hidden_1)
 
 z2 = ad.matmul(activation_1, W2)
 hidden_2 = z2 + ad.broadcast_to(b2, z2)
-loss = ad.cross_entropy(hidden_2, y)
+loss = au.nn.cross_entropy(hidden_2, y)
 
 lr = 1e-3
 n_epoch = 1001
-optimizer = SGD(loss, params=[W1, b1, W2, b2], lr=lr, momentum=0.8)
+optimizer = au.optim.SGD(loss, params=[W1, b1, W2, b2], lr=lr, momentum=0.8)
 for i in range(n_epoch):
     loss_now = optimizer.step(feed_dict={X: X_data, y: y_data_encoded})
     if i <= 10 or (i <= 100 and i % 10 == 0) or (i <= 1000 and i % 100 == 0):

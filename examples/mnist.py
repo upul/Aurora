@@ -1,7 +1,6 @@
 import numpy as np
+import aurora as au
 import aurora.autodiff as ad
-from aurora.optim import Adam
-from aurora.datasets import MNIST
 
 
 def measure_accuracy(activation, data):
@@ -17,7 +16,7 @@ def measure_accuracy(activation, data):
 
 # Create an instance of MNIST dataset and
 # create a generator for reading training data
-data = MNIST(batch_size=128)
+data = au.datasets.MNIST(batch_size=128)
 batch_generator = data.training_batch_generator()
 
 input_size = data.num_features()  # number of features
@@ -42,21 +41,21 @@ b3 = ad.Parameter(name="b3", init=np.zeros(output_size))
 # building the NN model
 z1 = ad.matmul(X, W1)
 hidden_1 = z1 + ad.broadcast_to(b1, z1)
-activation_1 = ad.relu(hidden_1)
+activation_1 = au.nn.relu(hidden_1)
 
 z2 = ad.matmul(activation_1, W2)
 hidden_2 = z2 + ad.broadcast_to(b2, z2)
-activation_2 = ad.relu(hidden_2)
+activation_2 = au.nn.relu(hidden_2)
 
 z3 = ad.matmul(activation_2, W3)
 hidden_3 = z3 + ad.broadcast_to(b3, z3)
-loss = ad.cross_entropy(hidden_3, y)
+loss = au.nn.cross_entropy(hidden_3, y)
 
 lr = 1e-3  # learning rate
 n_iter = 7001  # number of iterations
 
 # Using Adam optimizer
-optimizer = Adam(loss, params=[W1, b1, W2, b2, W3, b3], lr=lr)
+optimizer = au.optim.Adam(loss, params=[W1, b1, W2, b2, W3, b3], lr=lr)
 # Starts training
 for i in range(n_iter):
     # read next random batch from the training generator
