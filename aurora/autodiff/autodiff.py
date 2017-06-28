@@ -68,7 +68,7 @@ class Op(object):
         new_node.op = self
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, use_gpu = False):
         """
         Given the values of input nodes, compute the output value
 
@@ -97,6 +97,9 @@ class Op(object):
         -------
         :return: A list of gradient contribution to each input node respectively
         """
+        raise NotImplementedError
+
+    def infer_shape(self, node, input_shapes):
         raise NotImplementedError
 
 
@@ -153,6 +156,11 @@ class AddOp(Op):
         """
         return [output_grads, output_grads]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 2
+        assert input_shapes[0] == input_shapes[1]
+        return input_shapes[0]
+
 
 class AddByConstOp(Op):
     """
@@ -191,6 +199,11 @@ class AddByConstOp(Op):
         """
         return [output_grads]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        assert node.const.shape == input_shapes[0]
+        return input_shapes[0]
+
 
 class SubOp(Op):
     def __call__(self, node_A, node_B):
@@ -205,6 +218,12 @@ class SubOp(Op):
 
     def gradient(self, node, output_grads):
         return [output_grads, -1 * output_grads]
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 2
+        assert input_shapes[0] == input_shapes[1]
+        return input_shapes[0]
+
 
 
 class SubByConstOp(Op):
@@ -221,6 +240,10 @@ class SubByConstOp(Op):
 
     def gradient(self, node, output_grads):
         return [output_grads]
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        return input_shapes[0]
 
 
 class ReflectedSubByConstOp(Op):
