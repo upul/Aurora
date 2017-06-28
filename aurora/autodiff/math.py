@@ -24,6 +24,10 @@ class TanhOp(Op):
         g = 1 - (tanh(x) * tanh(x))
         return [g * output_grads]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes)
+        return input_shapes[0]
+
 # Global singleton operations
 tanh = TanhOp()
 

@@ -6,7 +6,7 @@ import seaborn as sbn
 
 sbn.set()
 num_point = 300
-n_epoch = 1500
+n_epoch = 1501
 lr = 0.002
 
 # X and y will be used to input into

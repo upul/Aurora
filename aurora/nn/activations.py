@@ -17,6 +17,10 @@ class ReluOp(Op):
     def gradient(self, node, output_grads):
         return [relu_grad(node.inputs[0]) * output_grads]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        return input_shapes[0]
+
 
 class ReluGradOp(Op):
     def __call__(self, node_A):
@@ -31,6 +35,11 @@ class ReluGradOp(Op):
 
     def gradient(self, node, output_grads):
         raise NotImplementedError
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        return input_shapes[0]
+
 
 class SigmoidOp(Op):
     def __call__(self, node_A):
@@ -48,6 +57,10 @@ class SigmoidOp(Op):
         g = sigmoid(x) * (1 - sigmoid(x))
         return [g * output_grads]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes)
+        return input_shapes[0]
+
 
 class SoftmaxOp(Op):
     def __call__(self, node_A):
@@ -63,9 +76,14 @@ class SoftmaxOp(Op):
     def gradient(self, node, output_grads):
         raise NotImplementedError('Not yet implemented, Please use CrossEntropy operator')
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        return input_shapes[0]
+
+
 # TODO (upul)
 
-#
+# Global singleton operators
 relu = ReluOp()
 relu_grad = ReluGradOp()
 sigmoid = SigmoidOp()

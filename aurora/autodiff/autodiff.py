@@ -225,7 +225,6 @@ class SubOp(Op):
         return input_shapes[0]
 
 
-
 class SubByConstOp(Op):
     def __call__(self, node_A, const_val):
         new_node = Op.__call__(self)
@@ -261,6 +260,10 @@ class ReflectedSubByConstOp(Op):
     def gradient(self, node, output_grads):
         return [-1 * output_grads]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        return input_shapes[0]
+
 
 class OnesLikeOp(Op):
     def __call__(self, node_A):
@@ -276,6 +279,13 @@ class OnesLikeOp(Op):
 
     def gradient(self, node, output_grads):
         return [zeros_like(node.inputs[0])]
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        if input_shapes[0] == 1: # TODO (upul) do we need this if ?
+            return (1,)
+        else:
+            return input_shapes[0]
 
 
 class ZerosLikeOp(Op):
@@ -293,6 +303,13 @@ class ZerosLikeOp(Op):
     def gradient(self, node, output_grads):
         return [zeros_like(node.inputs[0])]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        if input_shapes[0] == 1: # TODO (upul) do we need this if ?
+            return (1,)
+        else:
+            return input_shapes[0]
+
 
 class MulOp(Op):
     def __call__(self, node_A, node_B):
@@ -307,6 +324,19 @@ class MulOp(Op):
 
     def gradient(self, node, output_grads):
         return [node.inputs[1] * output_grads, node.inputs[0] * output_grads]
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 2
+        if input_shapes[0] == (1,):
+            return input_shapes[1]
+        elif input_shapes[1] == (1,):
+            return input_shapes[0]
+        elif input_shapes[0] == input_shapes[1]:
+            return input_shapes[0]
+        else:
+            stmt = 'Invalid dimensions {0:s}, (1:s)'.format(input_shapes[0], input_shapes[1])
+            raise RuntimeError(stmt)
+
 
 
 class MulByConstOp(Op):
@@ -324,6 +354,10 @@ class MulByConstOp(Op):
     def gradient(self, node, output_grads):
         return [node.const * output_grads]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        return input_shapes[0]
+
 
 class DivOp(Op):
     def __call__(self, node_A, node_B):
@@ -337,7 +371,14 @@ class DivOp(Op):
         return input_vals[0] / input_vals[1]
 
     def gradient(self, node, output_grads):
-        return [output_grads / node.inputs[1], -1.0 * output_grads * node.inputs[0] / (node.inputs[1] * node.inputs[1])]
+        grad_A = output_grads / node.inputs[1]
+        grad_B = -1.0 * output_grads * node.inputs[0] / (node.inputs[1] * node.inputs[1])
+        return [grad_A, grad_B]
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 2
+        assert input_shapes[0] == input_shapes[1]
+        return input_shapes[0]
 
 
 class DivByConstOp(Op):
@@ -354,6 +395,10 @@ class DivByConstOp(Op):
 
     def gradient(self, node, output_grads):
         return [output_grads / node.const]
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        return input_shapes[0]
 
 
 class PlaceholderOp(Op):
@@ -387,6 +432,13 @@ class ReduceSumOp(Op):
     def gradient(self, node, output_grads):
         return [output_grads]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes[0]) == 1
+        if len(input_shapes[0]) == 1:
+            return (1,)
+        else:
+            tuple(input_shapes[0][i] for i in range(1, len(input_shapes[0])))
+
 
 class BroadcastToOp(Op):
     def __call__(self, node_A, node_B):
@@ -403,6 +455,10 @@ class BroadcastToOp(Op):
         grad_A = reduce_sum(output_grads)
         grad_B = zeros_like(node.inputs[1])
         return [grad_A, grad_B]
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 2
+        return input_shapes[1]
 
 
 class MatMulOp(Op):
@@ -448,23 +504,6 @@ def Parameter(name, init):
     parameter_node.name = name
     parameter_node.const = init
     return parameter_node
-
-
-
-
-
-class Conv2dOp(Op):
-    def __call__(self, node_A, node_B):
-        new_node = Op.__call__(self)
-        new_node.inputs = [node_A, node_B]
-        new_node.name = 'Conv2d({0:s}, {1:s})'.format(node_A.name, node_B.name)
-        return new_node
-
-    def compute(self, node, input_vals):
-        pass
-
-    def gradient(self, node, output_grads):
-        pass
 
 # Global singleton operations
 add = AddOp()

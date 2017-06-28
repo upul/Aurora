@@ -22,6 +22,11 @@ class CrossEntropyOp(Op):
         grad_B = zeros_like(node.inputs[1])
         return [grad_A, grad_B]
 
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 2
+        return (1, )
+
+
 # TODO (upul) MSE
 # TODO (upul) RMSE
 

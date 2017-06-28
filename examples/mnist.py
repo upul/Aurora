@@ -68,7 +68,7 @@ for i in range(n_iter):
         print(fmt_str.format(i, loss_now[0]))
 
 # printing validation accuracy
-# TODO (Upul) optimize hyper-parameters using validation dataset
+# TODO (upul) optimize hyper-parameters using validation dataset
 val_acc = measure_accuracy(hidden_3, data.validation())
 print('Validation accuracy: {:>.2f}'.format(val_acc))
 

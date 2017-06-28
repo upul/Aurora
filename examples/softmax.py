@@ -18,7 +18,7 @@ z = ad.matmul(x, W)
 hid_1 = z + ad.broadcast_to(b, z)
 loss = au.nn.cross_entropy_with_logits(hid_1, y)
 
-n_epoch = 1000
+n_epoch = 1001
 lr = 0.001
 
 optimizer = au.optim.SGD(loss, params=[W, b], lr=lr, momentum=0.9)
