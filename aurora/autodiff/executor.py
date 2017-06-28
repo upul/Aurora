@@ -7,7 +7,7 @@ class Executor:
 
     """
 
-    def __init__(self, eval_list):
+    def __init__(self, eval_list, use_gpu = False):
         """
         Executor computes values for a given subset of nodes in a computation graph.
 
@@ -16,6 +16,23 @@ class Executor:
         :param eval_list: Values of the nodes of this list need to be computed
         """
         self.eval_list = eval_list
+        self.use_gpu = use_gpu
+
+    def infer_shape(self, feed_shapes):
+        """
+        Given the shapes of the feed_shapes dictionary, we infer shapes of all nodes in the graph
+        :param feed_shapes:
+        :return:
+        """
+        pass
+
+    def memory_plan(self, feed_shapes):
+        """
+
+        :param feed_shapes:
+        :return:
+        """
+        pass
 
     def run(self, feed_dict):
         """
