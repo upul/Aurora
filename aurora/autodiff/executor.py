@@ -7,7 +7,7 @@ class Executor:
 
     """
 
-    def __init__(self, eval_list, use_gpu = False):
+    def __init__(self, eval_list, use_gpu=False):
         """
         Executor computes values for a given subset of nodes in a computation graph.
 
@@ -17,6 +17,8 @@ class Executor:
         """
         self.eval_list = eval_list
         self.use_gpu = use_gpu
+        self.node_to_arr_map = {}
+        self.node_to_shape_map = {}
 
     def infer_shape(self, feed_shapes):
         """
@@ -24,7 +26,18 @@ class Executor:
         :param feed_shapes:
         :return:
         """
-        pass
+        self.node_to_shape_map = {}
+        topo_order = find_topo_sort(self.eval_list)  # TODO (upul) cache this
+        for node in topo_order:
+            if node in self.node_to_shape_map:
+                continue
+            if node in feed_shapes:
+                self.node_to_shape_map[node] = feed_shapes[node]
+            else:
+                input_shapes = []
+                for input_node in node.inputs:  # TODO: (upul) list comprehension
+                    input_shapes.append(self.node_to_shape_map[node])
+                self.node_to_shape_map[node] = node.op.infer_shape(input_shapes)
 
     def memory_plan(self, feed_shapes):
         """
@@ -32,7 +45,11 @@ class Executor:
         :param feed_shapes:
         :return:
         """
-        pass
+        topo_order = find_topo_sort(self.eval_list)  # TODO (upul) cache this
+        self.node_to_arr_map = {}
+        for node in topo_order:
+            pass
+            # self.node_to_arr_map[node] = ndarray.empty(self.node_to_shape_map[node], ctx=self.ctx)
 
     def run(self, feed_dict):
         """
