@@ -1,3 +1,5 @@
+from aurora.ndarray import ndarray
+
 from .autodiff import PlaceholderOp
 from .utils import find_topo_sort
 
@@ -16,7 +18,9 @@ class Executor:
         :param eval_list: Values of the nodes of this list need to be computed
         """
         self.eval_list = eval_list
-        self.use_gpu = use_gpu
+        self.ctx = None
+        if use_gpu:
+            self.ctx = ndarray.gpu(0)
         self.node_to_arr_map = {}
         self.node_to_shape_map = {}
 
@@ -48,8 +52,7 @@ class Executor:
         topo_order = find_topo_sort(self.eval_list)  # TODO (upul) cache this
         self.node_to_arr_map = {}
         for node in topo_order:
-            pass
-            # self.node_to_arr_map[node] = ndarray.empty(self.node_to_shape_map[node], ctx=self.ctx)
+            self.node_to_arr_map[node] = ndarray.empty(self.node_to_shape_map[node], ctx=self.ctx)
 
     def run(self, feed_dict):
         """
@@ -63,20 +66,30 @@ class Executor:
         -------
         :return: Values of the nodes specified by the eval_list
         """
-        node_to_eval_map = dict(feed_dict)
-        topo_order = find_topo_sort(self.eval_list)
-        for node in topo_order:
-            if node in feed_dict:
-                continue
+        # node_to_eval_map = dict(feed_dict)
+        # topo_order = find_topo_sort(self.eval_list)
+        # for node in topo_order:
+        #     if node in feed_dict:
+        #         continue
+        #
+        #     # TODO (upul): following if condition looks like a hack. Find a better approach
+        #     if isinstance(node.op, PlaceholderOp) and node.const is not None:
+        #         node_to_eval_map[node] = node.const
+        #         continue
+        #
+        #     inputs = [node_to_eval_map[n] for n in node.inputs]
+        #     value = node.op.compute(node, inputs)
+        #     node_to_eval_map[node] = value
+        #
+        # # select values of nodes given in feed_dicts
+        # return [node_to_eval_map[node] for node in self.eval_list]
 
-            # TODO (upul): following if condition looks like a hack. Find a better approach
-            if isinstance(node.op, PlaceholderOp) and node.const is not None:
-                node_to_eval_map[node] = node.const
-                continue
+        use_numpy = self.ctx is None
 
-            inputs = [node_to_eval_map[n] for n in node.inputs]
-            value = node.op.compute(node, inputs)
-            node_to_eval_map[node] = value
 
-        # select values of nodes given in feed_dicts
-        return [node_to_eval_map[node] for node in self.eval_list]
+    @staticmethod
+    def _are_feed_shapes_equal(sa, sb):
+        if (not isinstance(sa, dict)) or (not isinstance(sb, dict)):
+            return False
+        unmatched_items = set(sa.items()) ^ set(sb.items())
+        return len(unmatched_items)
