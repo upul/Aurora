@@ -10,7 +10,7 @@ class ReluOp(Op):
         new_node.name = 'Relu({0:s})'.format(node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return np.maximum(input_vals[0], 0)
 
@@ -29,7 +29,7 @@ class ReluGradOp(Op):
         new_node.name = 'ReluGrad({0:s})'.format(node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return np.sign(np.maximum(input_vals[0], 0))
 
@@ -48,7 +48,7 @@ class SigmoidOp(Op):
         new_node.name = 'Sigmoid({0:s})'.format(node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return 1 / (1 + np.exp(-1 * input_vals[0]))
 
@@ -69,7 +69,7 @@ class SoftmaxOp(Op):
         new_node.name = 'SoftmaxOp({0:s})'.format(node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return softmax_func(input_vals[0])
 

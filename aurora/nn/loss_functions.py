@@ -11,7 +11,7 @@ class CrossEntropyOp(Op):
         new_node.name = 'CrossEntropy({0:s}, {1:s})'.format(node_A.name, node_B.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
         pred = softmax_func(input_vals[0])
         actual = input_vals[1]

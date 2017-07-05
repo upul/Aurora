@@ -86,7 +86,6 @@ class Executor:
 
         use_numpy = self.ctx is None
 
-
     @staticmethod
     def _are_feed_shapes_equal(sa, sb):
         if (not isinstance(sa, dict)) or (not isinstance(sb, dict)):

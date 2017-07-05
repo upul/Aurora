@@ -1,4 +1,7 @@
 import numpy as np
+from aurora.ndarray import ndarray
+from aurora.ndarray import gpu_op
+
 
 class Node(object):
     """ Node object represents a node in the computational graph"""
@@ -68,7 +71,7 @@ class Op(object):
         new_node.op = self
         return new_node
 
-    def compute(self, node, input_vals, use_gpu = False):
+    def compute(self, node, input_vals, use_gpu=False):
         """
         Given the values of input nodes, compute the output value
 
@@ -126,7 +129,7 @@ class AddOp(Op):
         new_node.name = '({}+{})'.format(nodeA.name, nodeB.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         """
         Given values of two input nodes, return result of element-wise addition.
         Parameters
@@ -180,7 +183,7 @@ class AddByConstOp(Op):
         new_node.name = '({0:s}+{1:f})'.format(node_A.name, const_val)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         """
 
         :param node:
@@ -212,7 +215,7 @@ class SubOp(Op):
         new_node.name = '({0:s}-{1:s})'.format(node_A.name, node_B.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
         return input_vals[0] - input_vals[1]
 
@@ -233,7 +236,7 @@ class SubByConstOp(Op):
         new_node.name = '({0:s}-{1:f})'.format(node_A.name, const_val)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return input_vals[0] - node.const
 
@@ -253,7 +256,7 @@ class ReflectedSubByConstOp(Op):
         new_node.name = '({0:f}-{1:s})'.format(const_val, node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return node.const - input_vals[0]
 
@@ -272,7 +275,7 @@ class OnesLikeOp(Op):
         new_node.name = 'Oneslike({})'.format(node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         assert isinstance(input_vals[0], np.ndarray)
         return np.ones(input_vals[0].shape)
@@ -282,7 +285,7 @@ class OnesLikeOp(Op):
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 1
-        if input_shapes[0] == 1: # TODO (upul) do we need this if ?
+        if input_shapes[0] == 1:  # TODO (upul) do we need this if ?
             return (1,)
         else:
             return input_shapes[0]
@@ -295,7 +298,7 @@ class ZerosLikeOp(Op):
         new_node.name = 'Zeroslike({})'.format(node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         assert isinstance(input_vals[0], np.ndarray)
         return np.zeros(input_vals[0].shape)
@@ -305,7 +308,7 @@ class ZerosLikeOp(Op):
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 1
-        if input_shapes[0] == 1: # TODO (upul) do we need this if ?
+        if input_shapes[0] == 1:  # TODO (upul) do we need this if ?
             return (1,)
         else:
             return input_shapes[0]
@@ -318,7 +321,7 @@ class MulOp(Op):
         new_node.name = '({0:s}*{1:s})'.format(node_A.name, node_B.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
         return input_vals[0] * input_vals[1]
 
@@ -338,7 +341,6 @@ class MulOp(Op):
             raise RuntimeError(stmt)
 
 
-
 class MulByConstOp(Op):
     def __call__(self, node_A, const_val):
         new_node = Op.__call__(self)
@@ -347,7 +349,7 @@ class MulByConstOp(Op):
         new_node.name = '({0:s}*{1:f})'.format(node_A.name, const_val)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return node.const * input_vals[0]
 
@@ -366,7 +368,7 @@ class DivOp(Op):
         new_node.name = '({0:s}/{1:s})'.format(node_A.name, node_B.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
         return input_vals[0] / input_vals[1]
 
@@ -389,7 +391,7 @@ class DivByConstOp(Op):
         new_node.name = '({0:s}/{1:f})'.format(node_A.name, const_val)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return input_vals[0] / node.const
 
@@ -409,7 +411,7 @@ class PlaceholderOp(Op):
         new_node = Op.__call__(self)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         """No compute function since node value is fed directly in Executor."""
         assert False, "placeholder values provided by feed_dict"
 
@@ -425,9 +427,13 @@ class ReduceSumOp(Op):
         new_node.name = 'ReduceSum({0:s})'.format(node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        return np.sum(input_vals[0], axis=0)
+        if use_numpy:
+            assert isinstance(output_val, np.ndarray)
+            output_val[:] = np.sum(input_vals[0], axis=0)
+        else:
+            gpu_op.reduce_sum_axis_zero(input_vals[0], output_val)
 
     def gradient(self, node, output_grads):
         return [output_grads]
@@ -447,7 +453,7 @@ class BroadcastToOp(Op):
         new_node.name = 'BroadcastTo({0:s}, {1:s}.shape)'.format(node_A.name, node_B.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
         return np.broadcast_to(input_vals[0], input_vals[1].shape)
 
@@ -470,7 +476,7 @@ class MatMulOp(Op):
         new_node.name = 'MatMul({0:s}, {1:s}'.format(node_A.name, node_B.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
         if node.trans_A:
             input_vals[0] = input_vals[0].T
@@ -504,6 +510,7 @@ def Parameter(name, init):
     parameter_node.name = name
     parameter_node.const = init
     return parameter_node
+
 
 # Global singleton operations
 add = AddOp()

@@ -15,7 +15,7 @@ class TanhOp(Op):
         new_node.name = 'Tanh({0:s})'.format(node_A.name)
         return new_node
 
-    def compute(self, node, input_vals):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         return np.tanh(input_vals[0])
 
