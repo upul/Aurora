@@ -1,5 +1,6 @@
 import numpy as np
 from aurora.autodiff.autodiff import Op
+from aurora.ndarray import gpu_op
 from aurora.nn.utils import softmax_func
 
 
@@ -12,7 +13,10 @@ class ReluOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        return np.maximum(input_vals[0], 0)
+        if use_numpy:
+            output_val[:] = np.maximum(input_vals[0], 0)
+        else:
+            gpu_op.relu_gradient(input_vals[0], input_vals[1], output_val)
 
     def gradient(self, node, output_grads):
         return [relu_grad(node.inputs[0]) * output_grads]
@@ -31,7 +35,10 @@ class ReluGradOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        return np.sign(np.maximum(input_vals[0], 0))
+        if use_numpy:
+            output_val[:] = np.sign(np.maximum(input_vals[0], 0))
+        else:
+            output_val[:] = gpu_op.relu_gradient(input_vals[0], input_vals[1], output_val)
 
     def gradient(self, node, output_grads):
         raise NotImplementedError
