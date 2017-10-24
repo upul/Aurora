@@ -191,7 +191,11 @@ class AddByConstOp(Op):
         :return:
         """
         assert len(input_vals) == 1
-        return node.const + input_vals[0]
+        if use_numpy:
+            output_val[:] = node.const + input_vals[0]
+        else:
+            gpu_op.matrix_elementwise_add_by_const(
+                input_vals[0], node.const, output_val)
 
     def gradient(self, node, output_grads):
         """
