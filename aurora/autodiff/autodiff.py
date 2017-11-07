@@ -1,5 +1,4 @@
 import numpy as np
-from aurora.ndarray import ndarray
 from aurora.ndarray import gpu_op
 
 
@@ -142,7 +141,20 @@ class AddOp(Op):
         :return:  The result of the element-wise addition operation
         """
         assert len(input_vals) == 2
-        return input_vals[0] + input_vals[1]
+        # return input_vals[0] + input_vals[1]
+        if use_numpy:
+            output_val[:] = input_vals[0] + input_vals[1]
+        else:
+            if input_vals[0].shape == input_vals[1].shape:
+                gpu_op.matrix_elementwise_add(input_vals[0], input_vals[1], output_val)
+            elif input_vals[0].shape == (1,):
+                const = input_vals[0].asnumpy()[0]  # TODO: (upul) do we need this ? check it?
+                gpu_op.matrix_elementwise_add_by_const(input_vals[1], const, output_val)
+            elif input_vals[1].shape == (1,):
+                const = input_vals[1].asnumpy()[1]  # TODO: (upul) do we need this ? check it?
+                gpu_op.matrix_elementwise_add_by_const(input_vals[0], const, output_val)
+            else:
+                pass  # TODO: (upul) handle input[0] and input[1] in different shapes
 
     def gradient(self, node, output_grads):
         """
@@ -221,7 +233,10 @@ class SubOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
-        return input_vals[0] - input_vals[1]
+        if use_numpy:
+            output_val[:] = input_vals[0] - input_vals[1]
+        else:
+            pass  # TODO: (upul) conplete GPU version
 
     def gradient(self, node, output_grads):
         return [output_grads, -1 * output_grads]
@@ -327,7 +342,21 @@ class MulOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
-        return input_vals[0] * input_vals[1]
+        if use_numpy:
+            output_val[:] = input_vals[0] * input_vals[1]
+        else:
+            ip_1_shape = input_vals[0].shape
+            ip_2_shape = input_vals[1].shape
+            if ip_1_shape == ip_2_shape:
+                gpu_op.matrix_elementwise_multiply(input_vals[0], input_vals[1], output_val)
+            elif ip_1_shape == (1,):
+                const_val = input_vals[0].asnumpy()[0]
+                gpu_op.matrix_elementwise_multiply_by_const(input_vals[1], const_val, output_val)
+            elif ip_2_shape == (1,):
+                const_val = input_vals[1].asnumpy()[0]
+                gpu_op.matrix_elementwise_multiply_by_const(input_vals[0], const_val, output_val)
+            else:
+                pass  # TODO (upul) handle ip_1_shape != ip_2_shape
 
     def gradient(self, node, output_grads):
         return [node.inputs[1] * output_grads, node.inputs[0] * output_grads]
