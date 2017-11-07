@@ -488,7 +488,10 @@ class BroadcastToOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
-        return np.broadcast_to(input_vals[0], input_vals[1].shape)
+        if use_numpy:
+            output_val[:] = np.broadcast_to(input_vals[0], input_vals[1].shape)
+        else:
+            gpu_op.broadcast_to(input_vals[0], output_val)
 
     def gradient(self, node, output_grads):
         grad_A = reduce_sum(output_grads)
