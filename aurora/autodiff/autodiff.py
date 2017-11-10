@@ -1,5 +1,5 @@
 import numpy as np
-from aurora.ndarray import gpu_op
+from aurora.ndarray import ndarray, gpu_op
 
 
 class Node(object):
@@ -220,7 +220,7 @@ class AddByConstOp(Op):
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 1
-        assert node.const.shape == input_shapes[0]
+        #assert node.const.shape == input_shapes[0]
         return input_shapes[0]
 
 
@@ -257,7 +257,10 @@ class SubByConstOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        return input_vals[0] - node.const
+        if use_numpy:
+            output_val[:] = input_vals[0] - node.const
+        else:
+            raise NotImplementedError('SubByConstOp GPU version not yet implemented')
 
     def gradient(self, node, output_grads):
         return [output_grads]
@@ -296,8 +299,11 @@ class OnesLikeOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        assert isinstance(input_vals[0], np.ndarray)
-        return np.ones(input_vals[0].shape)
+        if use_numpy:
+            assert isinstance(input_vals[0], np.ndarray)
+            output_val[:] = np.ones(input_vals[0].shape)
+        else:
+            gpu_op.array_set(output_val, 1)
 
     def gradient(self, node, output_grads):
         return [zeros_like(node.inputs[0])]
@@ -319,8 +325,11 @@ class ZerosLikeOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        assert isinstance(input_vals[0], np.ndarray)
-        return np.zeros(input_vals[0].shape)
+        if use_numpy:
+            assert isinstance(input_vals[0], np.ndarray)
+            output_val[:] = np.zeros(input_vals[0].shape)
+        else:
+            gpu_op.array_set(output_val, 0)
 
     def gradient(self, node, output_grads):
         return [zeros_like(node.inputs[0])]
@@ -384,7 +393,11 @@ class MulByConstOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        return node.const * input_vals[0]
+        if use_numpy:
+            output_val[:] = node.const * input_vals[0]
+        else:
+            gpu_op.matrix_elementwise_multiply_by_const(
+                input_vals[0], node.const, output_val)
 
     def gradient(self, node, output_grads):
         return [node.const * output_grads]
@@ -403,7 +416,10 @@ class DivOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
-        return input_vals[0] / input_vals[1]
+        if use_numpy:
+            output_val[:] = input_vals[0] / input_vals[1]
+        else:
+            raise NotImplementedError('DivOp GPU version not yet implementated')
 
     def gradient(self, node, output_grads):
         grad_A = output_grads / node.inputs[1]
@@ -426,7 +442,10 @@ class DivByConstOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        return input_vals[0] / node.const
+        if use_numpy:
+            output_val[:] = input_vals[0] / node.const
+        else:
+            raise NotImplementedError('DivOp GPU version not yet implementated')
 
     def gradient(self, node, output_grads):
         return [output_grads / node.const]
@@ -472,11 +491,12 @@ class ReduceSumOp(Op):
         return [output_grads]
 
     def infer_shape(self, node, input_shapes):
-        assert len(input_shapes[0]) == 1
+        assert len(input_shapes) == 1
         if len(input_shapes[0]) == 1:
             return (1,)
         else:
-            tuple(input_shapes[0][i] for i in range(1, len(input_shapes[0])))
+            return tuple(input_shapes[0][i]
+                         for i in range(1, len(input_shapes[0])))
 
 
 class BroadcastToOp(Op):
@@ -503,7 +523,7 @@ class BroadcastToOp(Op):
         return input_shapes[1]
 
 
-class MatMulOp(Op):
+class MatMulOp(Op): #TODO: (upul) double check what this class is doing
     def __call__(self, node_A, node_B, trans_A=False, trans_B=False):
         new_node = Op.__call__(self)
         new_node.inputs = [node_A, node_B]
@@ -514,16 +534,35 @@ class MatMulOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
-        if node.trans_A:
-            input_vals[0] = input_vals[0].T
-        if node.trans_B:
-            input_vals[1] = input_vals[1].T
-        return np.dot(input_vals[0], input_vals[1])
+        if use_numpy:
+            if node.trans_A:
+                input_vals[0] = input_vals[0].T
+            if node.trans_B:
+                input_vals[1] = input_vals[1].T
+            output_val[:] = np.dot(input_vals[0], input_vals[1])
+        else:
+            gpu_op.matrix_multiply(
+                input_vals[0], node.trans_A,
+                input_vals[1], node.trans_B,
+                output_val)
 
     def gradient(self, node, output_grads):
         grad_A = matmul(output_grads, node.inputs[1], trans_A=False, trans_B=True)
         grad_B = matmul(node.inputs[0], output_grads, trans_A=True, trans_B=False)
         return [grad_A, grad_B]
+
+    def infer_shape(self, node, input_shapes):
+        """Need to handle input_vals[0].shape != input_vals[1].shape"""
+        assert len(input_shapes) == 2
+        (row_A, col_A) = input_shapes[0]
+        if node.trans_A:
+            row_A, col_A = col_A, row_A
+        (row_B, col_B) = input_shapes[1]
+        if node.trans_B:
+            row_B, col_B = col_B, row_B
+
+        assert col_A == row_B
+        return (row_A, col_B)
 
 
 def Variable(name):

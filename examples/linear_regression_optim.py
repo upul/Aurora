@@ -37,7 +37,7 @@ for i in range(n_epoch):
 
 # create an executor to read optimized W and b
 executor = ad.Executor([W, b])
-W_val, b_val = executor.run(feed_dict={})
+W_val, b_val = executor.run(feed_shapes={})
 
 # Plot training data points and learned parameters
 plt.scatter(x_data, y_data, c='#dd1c77')

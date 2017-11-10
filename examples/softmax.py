@@ -31,7 +31,7 @@ for i in range(n_epoch):
 
 prob = au.nn.softmax(hid_1)
 executor = ad.Executor([prob])
-prob_val, = executor.run(feed_dict={x: X_data})
+prob_val, = executor.run(feed_shapes={x: X_data})
 
 correct = np.sum(np.equal(y_data, np.argmax(prob_val, axis=1)))
 print('prediction accuracy: {}'.format(correct / (N * K)))

@@ -11,7 +11,7 @@ def _load_lib():
     """Load libary in build/lib."""
     curr_path = os.path.dirname(os.path.abspath(os.path.expanduser(__file__)))
     print(curr_path)
-    lib_path = os.path.join(curr_path, '../../cuda/build/lib/')
+    lib_path = os.path.join(curr_path, '/home/upulb/github/Aurora/cuda/build/lib/')
     path_to_so_file = os.path.join(lib_path, "libc_runtime_api.so")
     lib = ctypes.CDLL(path_to_so_file, ctypes.RTLD_GLOBAL)
     return lib

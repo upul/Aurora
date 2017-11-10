@@ -7,7 +7,7 @@ def measure_accuracy(activation, data):
     X_val, y_val = data
     prob = au.nn.softmax(activation)
     executor = ad.Executor([prob])
-    prob_val, = executor.run(feed_dict={X: X_val})
+    prob_val, = executor.run(feed_shapes={X: X_val})
 
     correct = np.sum(np.equal(y_val, np.argmax(prob_val, axis=1)))
     percentage = (correct / (y_val.shape[0])) * 100.00
