@@ -165,6 +165,36 @@ int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
 	return 0;
 }
 
+__global__
+void matrix_elementwise_division(const float *a, const float *b, float* result, int n)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if(index < n)
+    {
+        result[index] = a[index] / b[index];
+    }
+}
+
+int DLGpuMatrixElementwiseDiv(const DLArrayHandle matA, const DLArrayHandle matB,
+                             DLArrayHandle output)
+{
+    int n = 1;
+	for (int i = 0; i < output->ndim; i++) {
+		n = n * output->shape[i];
+	}
+	const float* data_A = (const float*) matA->data;
+	const float* data_B = (const float*) matB->data;
+	float* data_output = (float*) output->data;
+
+	int threads_per_block = 1024;
+	int num_blocks = (n + threads_per_block - 1) / threads_per_block;
+
+	matrix_elementwise_division<<<num_blocks, threads_per_block>>>(data_A, data_B,
+			data_output, n);
+	return 0;
+
+}
+
 __global__ void matrix_elementwise_add_by_const_kernal(const float *d_in,
 		float *d_out, float val, int n) {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -188,6 +218,31 @@ int DLGpuMatrixElementwiseAddByConst(const DLArrayHandle input, float val,
 			input_data, output_data, val, n);
 	return 0;
 }
+
+__global__ void matrix_elementwise_div_by_const_kernal(const float *d_in,
+		float *d_out, float val, int n) {
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index < n) {
+		d_out[index] = d_in[index] / val;
+	}
+}
+
+int DLGpuMatrixElementwiseDivByConst(const DLArrayHandle input, float val,
+		DLArrayHandle output) {
+	/* TODO: Your code here */
+	int n = 1;
+	for (int i = 0; i < output->ndim; i++) {
+		n = n * output->shape[i];
+	}
+	const float* input_data = (const float*) input->data;
+	float* output_data = (float*) output->data;
+	int threads_per_block = 1024;
+	int num_blocks = (n + threads_per_block - 1) / threads_per_block;
+	matrix_elementwise_div_by_const_kernal<<<num_blocks, threads_per_block>>>(
+			input_data, output_data, val, n);
+	return 0;
+}
+
 
 __global__ void elementwise_mul_kernel(const float* data_a, const float* data_b,
 		float* output, int n) {
