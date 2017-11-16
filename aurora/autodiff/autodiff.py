@@ -236,7 +236,7 @@ class SubOp(Op):
         if use_numpy:
             output_val[:] = input_vals[0] - input_vals[1]
         else:
-            pass  # TODO: (upul) conplete GPU version
+            gpu_op.matrix_elementwise_subtract(input_vals[0], input_vals[1], output_val)
 
     def gradient(self, node, output_grads):
         return [output_grads, -1 * output_grads]
@@ -260,7 +260,7 @@ class SubByConstOp(Op):
         if use_numpy:
             output_val[:] = input_vals[0] - node.const
         else:
-            raise NotImplementedError('SubByConstOp GPU version not yet implemented')
+            gpu_op.matrix_elementwise_subtract_by_const(input_vals[0], node.const, output_val)
 
     def gradient(self, node, output_grads):
         return [output_grads]

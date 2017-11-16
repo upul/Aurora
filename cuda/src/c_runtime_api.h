@@ -105,6 +105,13 @@ DLSYS_EXTERN_C {
   int DLGpuMatrixElementwiseAddByConst(const DLArrayHandle input, float val,
                                        DLArrayHandle output);
 
+
+  int DLGpuMatrixElementwiseSubtract(const DLArrayHandle matA,
+                                     const DLArrayHandle matB, DLArrayHandle output);
+
+  int DLGpuMatrixElementwiseSubtractByConst(const DLArrayHandle input, float val,
+                                       DLArrayHandle output);
+
   /*!
    * \brief Elementwise multiply two matrices and store to output.
    * \param matA The left input array.

@@ -36,6 +36,19 @@ def matrix_elementwise_add_by_const(in_mat, val, out_mat):
         in_mat.handle, ctypes.c_float(val), out_mat.handle)
 
 
+def matrix_elementwise_subtract(matA, matB, matC):
+    assert isinstance(matA, _nd.NDArray)
+    assert isinstance(matB, _nd.NDArray)
+    assert isinstance(matC, _nd.NDArray)
+    _LIB.DLGpuMatrixElementwiseSubtract(matA.handle, matB.handle, matC.handle)
+
+def matrix_elementwise_subtract_by_const(in_mat, val, out_mat):
+    assert isinstance(in_mat, _nd.NDArray)
+    assert isinstance(out_mat, _nd.NDArray)
+    _LIB.DLGpuMatrixElementwiseSubtractByConst(
+        in_mat.handle, ctypes.c_float(val), out_mat.handle)
+
+
 def matrix_elementwise_multiply(matA, matB, matC):
     assert isinstance(matA, _nd.NDArray)
     assert isinstance(matB, _nd.NDArray)
