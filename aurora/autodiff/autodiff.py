@@ -419,7 +419,7 @@ class DivOp(Op):
         if use_numpy:
             output_val[:] = input_vals[0] / input_vals[1]
         else:
-            gpu_op.matrix_elementwise_division(input_vals[0], input_vals[1])
+            gpu_op.matrix_elementwise_division(input_vals[0], input_vals[1], output_val)
 
     def gradient(self, node, output_grads):
         grad_A = output_grads / node.inputs[1]
@@ -445,7 +445,7 @@ class DivByConstOp(Op):
         if use_numpy:
             output_val[:] = input_vals[0] / node.const
         else:
-            gpu_op.matrix_elementwise_div_by_const(input_vals[0], node.const)
+            gpu_op.matrix_elementwise_div_by_const(input_vals[0], node.const, output_val)
 
     def gradient(self, node, output_grads):
         return [output_grads / node.const]

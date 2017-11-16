@@ -125,6 +125,15 @@ DLSYS_EXTERN_C {
   int DLGpuMatrixMultiplyByConst(const DLArrayHandle input, float val,
                                  DLArrayHandle output);
 
+
+  // TODO: (upul) documentation
+  int DLGpuMatrixElementwiseDiv(const DLArrayHandle matA,
+                                const DLArrayHandle matB,
+                                DLArrayHandle output);
+
+  // TODO: (upul) documentation
+  int DLGpuMatrixElementwiseDivByConst(const DLArrayHandle matA, float val,
+                                      DLArrayHandle output);
   /*!
    * \brief Matrix multiply two matrices and store to output.
    * \param matA The left input array.
