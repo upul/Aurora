@@ -27,32 +27,3 @@ def gradients(output_node, node_list):
     # Collect results for gradients requested.
     grad_node_list = [node_to_output_grad[node] for node in node_list]
     return grad_node_list
-
-# def gradients(output_node, node_list):
-#     """Take gradient of output node with respect to each node in node_list.
-#     Parameters
-#     ----------
-#     output_node: output node that we are taking derivative of.
-#     node_list: list of nodes that we are taking derivative wrt.
-#     Returns
-#     -------
-#     A list of gradient values, one for each node in node_list respectively.
-#     """
-#     node_to_output_grads_list = {}
-#     node_to_output_grads_list[output_node] = [ones_like(output_node)]
-#     node_to_output_grad = {}
-#     # Traverse forward graph in reverse topological order
-#     reverse_topo_order = reversed(find_topo_sort([output_node]))
-#     for node in reverse_topo_order:
-#         output_grad = sum_node_list(node_to_output_grads_list[node])
-#         node_to_output_grad[node] = output_grad
-#         input_grads_list = node.op.gradient(node, output_grad)
-#         for i in range(len(node.inputs)):
-#             if node.inputs[i] not in node_to_output_grads_list:
-#                 node_to_output_grads_list[node.inputs[i]] = []
-#             # Calculate partial adjoint for input nodes.
-#             node_to_output_grads_list[node.inputs[i]].append(
-#                 input_grads_list[i])
-#
-#     grad_node_list = [node_to_output_grad[node] for node in node_list]
-#     return grad_node_list

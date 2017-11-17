@@ -104,4 +104,4 @@ if __name__ == '__main__':
     print('Testing accuracy: {:>.2f}'.format(test_acc))
 
     end = timeit.default_timer()
-    print(end - start)
+    print('\nTime taken for training/testing: {0:3f}'.format(end - start))
