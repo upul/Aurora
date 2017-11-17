@@ -18,10 +18,10 @@ z = ad.matmul(x, W)
 hid_1 = z + ad.broadcast_to(b, z)
 loss = au.nn.cross_entropy_with_logits(hid_1, y)
 
-n_epoch = 1001
+n_epoch = 1500
 lr = 0.001
 
-optimizer = au.optim.SGD(loss, params=[W, b], lr=lr, momentum=0.9)
+optimizer = au.optim.SGD(loss, params=[W, b], lr=lr, momentum=0.9, use_gpu=False)
 
 for i in range(n_epoch):
     loss_now = optimizer.step(feed_dict={x: X_data, y: y_data_encoded})
@@ -30,8 +30,11 @@ for i in range(n_epoch):
         print(fmt_str.format(i, loss_now[0]))
 
 prob = au.nn.softmax(hid_1)
-executor = ad.Executor([prob])
+executor = ad.Executor([prob], use_gpu=False)
 prob_val, = executor.run(feed_shapes={x: X_data})
+
+if isinstance(prob_val, au.ndarray.ndarray.NDArray):
+    prob_val = prob_val.asnumpy()
 
 correct = np.sum(np.equal(y_data, np.argmax(prob_val, axis=1)))
 print('prediction accuracy: {}'.format(correct / (N * K)))

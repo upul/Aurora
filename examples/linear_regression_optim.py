@@ -28,7 +28,7 @@ y_data = 2.0 * x_data + np.random.uniform(-0.5, 0.5, (num_point, 1)) + 1.5 * np.
 
 # Stochastic Gradient Descent is used to optimize
 # parameters of the model
-optimizer = SGD(cost, params=[W, b], lr=lr)
+optimizer = SGD(cost, params=[W, b], lr=lr, use_gpu=True)
 for i in range(n_epoch):
     cost_now = optimizer.step(feed_dict={X: x_data, y: y_data})
     if i <= 10 or (i <= 100 and i % 10 == 0) or (i <= 1000 and i % 100 == 0):
@@ -38,6 +38,9 @@ for i in range(n_epoch):
 # create an executor to read optimized W and b
 executor = ad.Executor([W, b])
 W_val, b_val = executor.run(feed_shapes={})
+
+W_val = W_val.asnumpy()
+b_val = b_val.asnumpy()
 
 # Plot training data points and learned parameters
 plt.scatter(x_data, y_data, c='#dd1c77')

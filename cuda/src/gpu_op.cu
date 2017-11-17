@@ -193,7 +193,6 @@ int DLGpuMatrixElementwiseSubtract(const DLArrayHandle matA,
 	return 0;
 }
 
-
 __global__
 void matrix_elementwise_division(const float *a, const float *b, float* result, int n)
 {

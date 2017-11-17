@@ -155,3 +155,14 @@ def test_relu_gradient():
     gpu_op.relu_gradient(arr_x, arr_grad_x, arr_y)
     y = arr_y.asnumpy()
     np.testing.assert_allclose(((x > 0) * grad_x).astype(np.float32), y)
+
+
+def test_softmax():
+    ctx = ndarray.gpu(0)
+    shape = (400, 1000)
+    x = np.random.uniform(-5, 5, shape).astype(np.float32)
+    arr_x = ndarray.array(x, ctx=ctx)
+    arr_y = ndarray.empty(shape, ctx=ctx)
+    gpu_op.softmax(arr_x, arr_y)
+    y = arr_y.asnumpy()
+    np.testing.assert_allclose(au.nn.softmax_func(x), y, rtol=1e-5)
