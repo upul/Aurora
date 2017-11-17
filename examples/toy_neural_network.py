@@ -71,4 +71,4 @@ if __name__ == '__main__':
     print('Prediction accuracy: {0:>.3f}%'.format((correct / (N * K)) * 100.00))
 
     end = timeit.default_timer()
-    print('\nTime taken for training/testing: {0:3f}'.format(end - start))
+    print('\nTime taken for training/testing: {0:.3f}'.format(end - start))

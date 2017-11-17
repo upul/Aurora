@@ -42,18 +42,12 @@ def test_add_by_const():
 
 
 def test_softmax():
-    ctx = ndarray.gpu(0)
     shape = (2, 2)
     x_val = np.random.uniform(-5, 5, shape).astype(np.float32)
 
-    x2 = ad.Variable(name="x2")
+    x2 = ad.Variable(name='x2')
     prob = au.nn.softmax(x2)
     executor = ad.Executor([prob], use_gpu=True)
     y, = executor.run(feed_shapes={x2: x_val})
     y = y.asnumpy()
-
-    # arr_x = ndarray.array(x, ctx=ctx)
-    # arr_y = ndarray.empty(shape, ctx=ctx)
-    # gpu_op.softmax(arr_x, arr_y)
-    # y = arr_y.asnumpy()
     np.testing.assert_allclose(au.nn.softmax_func(x_val), y, rtol=1e-5)
