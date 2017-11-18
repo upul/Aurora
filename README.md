@@ -52,7 +52,7 @@ optimizer = au.optim.SGD(cost, params=[W, b], lr=lr, use_gpu=True)
 for i in range(n_epoch):
     # evaluate the graph
     cost_now = optimizer.step(feed_dict={X: x_data, y: y_data})
-    fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}
+    fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
     print(fmt_str.format(i, cost_now[0]))
 ```
 
