@@ -3,6 +3,7 @@ import aurora as au
 import aurora.autodiff as ad
 import timeit
 import argparse
+import sys
 
 
 def build_network(X, y, K):
@@ -16,6 +17,7 @@ def build_network(X, y, K):
 
 
 if __name__ == '__main__':
+    print(sys.argv)
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--exe_context',
                         help='Choose execution context: numpy, gpu',

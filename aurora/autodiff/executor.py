@@ -1,8 +1,10 @@
 import numpy as np
-
 from aurora.autodiff.autodiff import PlaceholderOp
-from aurora.ndarray import ndarray
 from .utils import find_topo_sort
+from config import sys_configs
+
+if sys_configs['use_gpu']:
+    from aurora.ndarray import ndarray
 
 
 class Executor:
@@ -84,6 +86,7 @@ class Executor:
         -------
         :return: Values of the nodes specified by the eval_list
         """
+
         # node_to_eval_map = dict(feed_dict)
         # topo_order = find_topo_sort(self.eval_list)
         # for node in topo_order:
@@ -102,7 +105,7 @@ class Executor:
         # # select values of nodes given in feed_dicts
         # return [node_to_eval_map[node] for node in self.eval_list]
 
-        #use_numpy = self.ctx is None
+        # use_numpy = self.ctx is None
 
         def are_feed_shapes_equal(sa, sb):
             if (not isinstance(sa, dict)) or (not isinstance(sb, dict)):
@@ -173,5 +176,3 @@ class Executor:
             return False
         unmatched_items = set(sa.items()) ^ set(sb.items())
         return len(unmatched_items)
-
-

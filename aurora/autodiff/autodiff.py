@@ -1,5 +1,8 @@
 import numpy as np
-from aurora.ndarray import ndarray, gpu_op
+from config import sys_configs
+
+if sys_configs['use_gpu']:
+    from aurora.ndarray import ndarray, gpu_op
 
 
 class Node(object):
@@ -220,7 +223,7 @@ class AddByConstOp(Op):
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 1
-        #assert node.const.shape == input_shapes[0]
+        # assert node.const.shape == input_shapes[0]
         return input_shapes[0]
 
 
@@ -523,7 +526,7 @@ class BroadcastToOp(Op):
         return input_shapes[1]
 
 
-class MatMulOp(Op): #TODO: (upul) double check what this class is doing
+class MatMulOp(Op):  # TODO: (upul) double check what this class is doing
     def __call__(self, node_A, node_B, trans_A=False, trans_B=False):
         new_node = Op.__call__(self)
         new_node.inputs = [node_A, node_B]

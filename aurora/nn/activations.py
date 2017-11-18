@@ -1,7 +1,10 @@
 import numpy as np
 from aurora.autodiff.autodiff import Op
-from aurora.ndarray import gpu_op
 from aurora.nn.utils import softmax_func
+from config import sys_configs
+
+if sys_configs['use_gpu']:
+    from aurora.ndarray import ndarray, gpu_op
 
 
 # class ReluOp(Op):
@@ -95,6 +98,7 @@ class ReluGradientOp(Op):
         assert input_shapes[0] == input_shapes[1]
         return input_shapes[0]
 
+
 class SigmoidOp(Op):
     def __call__(self, node_A):
         new_node = Op.__call__(self)
@@ -105,15 +109,15 @@ class SigmoidOp(Op):
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
         if use_numpy:
-            output_val[:] =  1 / (1 + np.exp(-1 * input_vals[0]))
+            output_val[:] = 1 / (1 + np.exp(-1 * input_vals[0]))
         else:
             raise NotImplementedError('GPU version not yet implemented')
 
     def gradient(self, node, output_grads):
         x = node.inputs[0]
-        #g = sigmoid(x) * (1 - sigmoid(x))
+        # g = sigmoid(x) * (1 - sigmoid(x))
         # TODO: (upul) obove g failed in unit testing, need to check it.
-        g = sigmoid(x) - sigmoid(x)*sigmoid(x)
+        g = sigmoid(x) - sigmoid(x) * sigmoid(x)
         return [g * output_grads]
 
     def infer_shape(self, node, input_shapes):

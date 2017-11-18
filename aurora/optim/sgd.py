@@ -1,6 +1,9 @@
 import numpy as np
 from .base import Base
-from aurora.ndarray import ndarray, gpu_op
+from config import sys_configs
+
+if sys_configs['use_gpu']:
+    from aurora.ndarray import ndarray, gpu_op
 
 
 class SGD(Base):

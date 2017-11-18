@@ -1,5 +1,9 @@
 import aurora.autodiff as ad
-from aurora.ndarray import ndarray
+from config import sys_configs
+
+if sys_configs['use_gpu']:
+    from aurora.ndarray import ndarray
+
 
 class Base:
     def __init__(self, cost, params, lr=0.1, use_gpu=False):
@@ -23,4 +27,3 @@ class Base:
             param.const = ndarray.array(param.const, ctx=ctx)
             gpu_arrays.append(param)
         return gpu_arrays
-

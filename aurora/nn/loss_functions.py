@@ -2,7 +2,11 @@ import numpy as np
 from aurora.autodiff.autodiff import Op, zeros_like
 from .utils import softmax_func
 from .activations import softmax
-from aurora.ndarray import gpu_op
+from config import sys_configs
+
+if sys_configs['use_gpu']:
+    from aurora.ndarray import ndarray, gpu_op
+
 
 class CrossEntropyOp(Op):
     def __call__(self, node_A, node_B):
@@ -27,7 +31,7 @@ class CrossEntropyOp(Op):
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 2
-        return (1, )
+        return (1,)
 
 
 # TODO (upul) MSE
