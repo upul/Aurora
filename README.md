@@ -28,6 +28,11 @@ export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 export PATH=/usr/local/cuda/bin:$PATH
 ```
 
+### Cloning the Repository
+
+### Build the GPU Backend
+
+### Install the Library
 
 ### Examples
 
