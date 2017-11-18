@@ -18,7 +18,16 @@ The current version comes with following limitations. We will be addressing thos
 * Model checkpointing.
 * Multi-GPU and distributed training.
 
-### How to Install
+### Installation
+
+#### Environment setup
+In order to use GPU capabilities of the Aurora library, you need to have a Nvidia GPU. If CUDA toolkit is not already installed, first install the latest version of the CUDA toolkit. Next, set following environment variables.
+
+```
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+export PATH=/usr/local/cuda/bin:$PATH
+```
+
 
 ### Examples
 
@@ -42,7 +51,6 @@ def build_network(X, y, K):
 
 
 if __name__ == '__main__':
-    print(sys.argv)
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--exe_context',
                         help='Choose execution context: numpy, gpu',
