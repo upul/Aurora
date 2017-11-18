@@ -18,7 +18,21 @@ The current version comes with following limitations. We will be addressing thos
 * Model checkpointing.
 * Multi-GPU and distributed training.
 
-### How to Install
+### Installation
+
+#### Environment setup
+In order to use GPU capabilities of the Aurora library, you need to have a Nvidia GPU. If CUDA toolkit is not already installed, first install the latest version of the CUDA toolkit. Next, set following environment variables.
+
+```
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+export PATH=/usr/local/cuda/bin:$PATH
+```
+
+### Cloning the Repository
+
+### Build the GPU Backend
+
+### Install the Library
 
 ### Examples
 
@@ -26,34 +40,68 @@ The current version comes with following limitations. We will be addressing thos
 import numpy as np
 import aurora as au
 import aurora.autodiff as ad
-import matplotlib.pyplot as plt
+import timeit
+import argparse
+import sys
 
-lr = 1e-3
-n_epoch = 100
-num_point = 250
 
-X = ad.Variable(name='x')
-y = ad.Variable(name='y')
-W = ad.Variable(name='W')
-b = ad.Variable(name='b')
-z = ad.matmul(X, W)
-output = z + ad.broadcast_to(b, z)
+def build_network(X, y, K):
+    W = ad.Parameter(name="W", init=np.zeros((D, K)))
+    b = ad.Parameter(name="b", init=np.zeros(K))
 
-cost = ad.reduce_sum((y - output) * (y - output)) / (2.0 * num_point)
-grad_cost_w, grad_b = ad.gradients(cost, [W, b])
+    z = ad.matmul(X, W)
+    logit = z + ad.broadcast_to(b, z)
+    loss = au.nn.cross_entropy_with_logits(logit, y)
+    return loss, W, b, logit
 
-x_data = np.linspace(0, 5, num_point).reshape((num_point, 1))
-y_data = 2.0 * x_data + np.random.uniform(-1.0, 1.0, (num_point, 1)) + 2.5 * np.ones((num_point, 1))
 
-w_val = np.zeros((1, 1))
-b_val = np.zeros(1)
-optimizer = au.optim.SGD(cost, params=[W, b], lr=lr, use_gpu=True)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--exe_context',
+                        help='Choose execution context: numpy, gpu',
+                        default='numpy')
 
-for i in range(n_epoch):
-    # evaluate the graph
-    cost_now = optimizer.step(feed_dict={X: x_data, y: y_data})
-    fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
-    print(fmt_str.format(i, cost_now[0]))
+    parser.add_argument('-i', '--num_iter',
+                        help='Choose number of iterations',
+                        default=500)
+
+    args = parser.parse_args()
+    use_gpu = False
+    if args.exe_context == 'gpu':
+        use_gpu = True
+    n_iter = int(args.num_iter)
+
+    start = timeit.default_timer()
+    D = 2
+    H = 150
+    K = 3
+    N = 100
+    X_data, y_data, y_data_encoded = au.datasets.spiral(K, D, N, 0)
+
+    X = ad.Variable(name="x")
+    y = ad.Variable(name='y')
+    loss, W, b, logit = build_network(X, y, K)
+
+    optimizer = au.optim.SGD(loss, params=[W, b], lr=1e-3, momentum=0.9, use_gpu=use_gpu)
+
+    for i in range(n_iter):
+        loss_now = optimizer.step(feed_dict={X: X_data, y: y_data_encoded})
+        if i % 100 == 0:
+            fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
+            print(fmt_str.format(i, loss_now[0]))
+
+    prob = au.nn.softmax(logit)
+    executor = ad.Executor([prob], use_gpu=use_gpu)
+    prob_val, = executor.run(feed_shapes={X: X_data})
+
+    if use_gpu:
+        prob_val = prob_val.asnumpy()
+
+    correct = np.sum(np.equal(y_data, np.argmax(prob_val, axis=1)))
+    print('prediction accuracy: {0:.3f}'.format((correct / (N * K)) * 100))
+
+    end = timeit.default_timer()
+    print('\nTime taken for training/testing: {0:.3f}'.format(end - start))
 ```
 
 ### References.
