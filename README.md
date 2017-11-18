@@ -32,11 +32,11 @@ lr = 1e-3
 n_epoch = 100
 num_point = 250
 
-x = ad.Variable(name='x')
+X = ad.Variable(name='x')
 y = ad.Variable(name='y')
 W = ad.Variable(name='W')
 b = ad.Variable(name='b')
-z = ad.matmul(x, W)
+z = ad.matmul(X, W)
 output = z + ad.broadcast_to(b, z)
 
 cost = ad.reduce_sum((y - output) * (y - output)) / (2.0 * num_point)
