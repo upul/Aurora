@@ -1,4 +1,5 @@
-# Aurora
-Minimal Deep Learning library is written in Python/Numpy and a bit of C++.
+# Aurora: Minimal Deep Learning Library.
+---
+Aurora is a minimal deep learning library written in Python/Numpy and a bit of C++.
 
 ### Work in progress (Repo)
