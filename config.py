@@ -1,1 +1,1 @@
-sys_configs = {'use_gpu': False}
+sys_configs = {'use_gpu': True}

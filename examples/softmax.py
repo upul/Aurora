@@ -3,7 +3,6 @@ import aurora as au
 import aurora.autodiff as ad
 import timeit
 import argparse
-import sys
 
 
 def build_network(X, y, K):
@@ -17,7 +16,6 @@ def build_network(X, y, K):
 
 
 if __name__ == '__main__':
-    print(sys.argv)
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--exe_context',
                         help='Choose execution context: numpy, gpu',
@@ -63,4 +61,4 @@ if __name__ == '__main__':
     print('prediction accuracy: {0:.3f}'.format((correct / (N * K)) * 100))
 
     end = timeit.default_timer()
-    print('\nTime taken for training/testing: {0:.3f}'.format(end - start))
+    print('Time taken for training/testing: {0:.3f} seconds'.format(end - start))
