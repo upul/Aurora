@@ -13,10 +13,11 @@ Aurora is a minimal deep learning library written in Python/Numpy and a bit of C
 
 Tough Aurora in a minimal deep learning system, it is quite capable of building MLPs for real-world datasets such as MINST and CIFAR-10. 
 
-### Limitations
+### Future Work
 
-The current version comes with following limitations. We will be addressing those limitations in upcoming releases.
+Following features will be added in upcoming releases.
 
+* Dropout and Batch-norm.
 * Convolutional operators.
 * cuDNN support.
 * Model checkpointing.
@@ -24,89 +25,48 @@ The current version comes with following limitations. We will be addressing thos
 
 ### Installation
 
-#### Environment setup
+Aurora relies on number of external libraries including CUDA and NumPy. For CUDA installation instruction please refer official CUDA documentation. Python dependencies can be install by running `requirements.txt` file.
+
+##### Environment setup
 In order to use GPU capabilities of the Aurora library, you need to have a Nvidia GPU. If CUDA toolkit is not already installed, first install the latest version of the CUDA toolkit. Next, set following environment variables.
 
-```
+```bash
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 export PATH=/usr/local/cuda/bin:$PATH
 ```
 
-### Cloning the Repository
+##### Cloning the Repository
 
-### Build the GPU Backend
+You can clone Aurora repository using following command.
 
-### Install the Library
+`git clone https://github.com/upul/Aurora.git`
+
+
+##### Building the GPU Backend
+
+Next, you need to build GPU backend. So please `cuda` directory and run `make` command as shown below.
+
+1. Go to `cuda` directory `cd cuda`
+2. Run `make`
+
+##### Installing the Library
+
+Go to `Aurora` directory and run:
+
+1. `pip install -r requirements.txt`
+2. `pip install .`
 
 ### Examples
 
-```python
-import numpy as np
-import aurora as au
-import aurora.autodiff as ad
-import timeit
-import argparse
-import sys
+Following are some of the examples written in Aurora. For complete list of examples please refer [`examples`](https://github.com/upul/Aurora/tree/master/examples) directory. Also, we have created few `Jupyter` notebooks and please refer [`examples/notebooks`](https://github.com/upul/Aurora/tree/master/examples/notebooks) for details. 
 
+1. [Linear Regression](https://github.com/upul/Aurora/blob/master/examples/linear_regression_optim.py)
+2. [Softmax](https://github.com/upul/Aurora/blob/master/examples/softmax.py)
+3. [Toy Neural Network](https://github.com/upul/Aurora/blob/master/examples/toy_neural_network.py)
+4. [MNIST](https://github.com/upul/Aurora/blob/master/examples/mnist.py)
 
-def build_network(X, y, K):
-    W = ad.Parameter(name="W", init=np.zeros((D, K)))
-    b = ad.Parameter(name="b", init=np.zeros(K))
-
-    z = ad.matmul(X, W)
-    logit = z + ad.broadcast_to(b, z)
-    loss = au.nn.cross_entropy_with_logits(logit, y)
-    return loss, W, b, logit
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--exe_context',
-                        help='Choose execution context: numpy, gpu',
-                        default='numpy')
-
-    parser.add_argument('-i', '--num_iter',
-                        help='Choose number of iterations',
-                        default=500)
-
-    args = parser.parse_args()
-    use_gpu = False
-    if args.exe_context == 'gpu':
-        use_gpu = True
-    n_iter = int(args.num_iter)
-
-    start = timeit.default_timer()
-    D = 2
-    H = 150
-    K = 3
-    N = 100
-    X_data, y_data, y_data_encoded = au.datasets.spiral(K, D, N, 0)
-
-    X = ad.Variable(name="x")
-    y = ad.Variable(name='y')
-    loss, W, b, logit = build_network(X, y, K)
-
-    optimizer = au.optim.SGD(loss, params=[W, b], lr=1e-3, momentum=0.9, use_gpu=use_gpu)
-
-    for i in range(n_iter):
-        loss_now = optimizer.step(feed_dict={X: X_data, y: y_data_encoded})
-        if i % 100 == 0:
-            fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
-            print(fmt_str.format(i, loss_now[0]))
-
-    prob = au.nn.softmax(logit)
-    executor = ad.Executor([prob], use_gpu=use_gpu)
-    prob_val, = executor.run(feed_shapes={X: X_data})
-
-    if use_gpu:
-        prob_val = prob_val.asnumpy()
-
-    correct = np.sum(np.equal(y_data, np.argmax(prob_val, axis=1)))
-    print('prediction accuracy: {0:.3f}'.format((correct / (N * K)) * 100))
-
-    end = timeit.default_timer()
-    print('\nTime taken for training/testing: {0:.3f}'.format(end - start))
-```
 
 ### References.
 
+1. 
+2. 
