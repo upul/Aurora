@@ -10,7 +10,8 @@ class MNIST:
 
         train, valid, test = self._load_data()
         self.X_train, self.y_train = train[0], train[1]
-        # encode y_train using one-hot encoding
+
+        # encoding y_train using one-hot encoding
         self.y_train_one_hot = np.zeros((self.y_train.shape[0], 10))
         self.y_train_one_hot[np.arange(self.y_train.shape[0]), self.y_train] = 1
 

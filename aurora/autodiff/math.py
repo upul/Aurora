@@ -17,7 +17,10 @@ class TanhOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        return np.tanh(input_vals[0])
+        if use_numpy:
+            output_val[:] = np.tanh(input_vals[0])
+        else:
+            raise NotImplementedError('GPU version of TanhOp not yet implemented')
 
     def gradient(self, node, output_grads):
         x = node.inputs[0]
