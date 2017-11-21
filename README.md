@@ -1,7 +1,6 @@
-<p align="center">
+<!--p align="center">
     <img src="https://github.com/upul/Aurora/blob/master/resources/logo.png" alt="logo">
-</p>
-
+</p-->
 # Aurora: Minimal Deep Learning Library.
 
 Aurora is a minimal deep learning library written in Python/Numpy and a bit of C++. It was designed to construct simple deep learning systems such as simple MLP. The current version comes with following features.
