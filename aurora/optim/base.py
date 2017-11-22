@@ -8,6 +8,7 @@ if sys_configs['use_gpu']:
 class Base:
     def __init__(self, cost, params, lr=0.1, use_gpu=False):
         self.cost = cost
+
         # if use_gpu == True, create matrices in GPU
         self.params = self._copy_to_gpu(params) if use_gpu else params
         self.lr = lr

@@ -191,6 +191,8 @@ DLSYS_EXTERN_C {
   int DLGpuSoftmaxCrossEntropy(const DLArrayHandle input_a,
                                const DLArrayHandle input_b,
                                DLArrayHandle output);
+
+  int DLGpuMatrixElementwiseSqrt(const DLArrayHandle input_a, DLArrayHandle output);
 } // DLSYS_EXTERN_C
 
 #endif // DLSYS_RUNTIME_C_RUNTIME_API_H_

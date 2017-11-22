@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
+#include <math.h>
 
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
@@ -327,6 +328,32 @@ int DLGpuMatrixElementwiseMultiply(const DLArrayHandle matA,
 
 	return 0;
 }
+
+__global__
+void matrix_elementwise_sqrt(const float* d_input, float* d_output, int n)
+{
+    int index = blockDim.x * blockIdx.x + threadIdx.x;
+    if(index < n)
+    {
+        d_output[index] = sqrt(d_input[index]);
+    }
+}
+int DLGpuMatrixElementwiseSqrt(const DLArrayHandle input, DLArrayHandle output) {
+	/* TODO: Your code here */
+	int n = 1;
+	for (int i = 0; i < input->ndim; i++) {
+		n *= input->shape[i];
+	}
+
+	const float *input_data = (const float *) input->data;
+	float *output_data = (float *) output->data;
+	int threads_per_block = 1024;
+	int num_blocks = (n + threads_per_block - 1) / threads_per_block;
+	matrix_elementwise_sqrt<<<num_blocks, threads_per_block>>>(input_data, output_data, n);
+	return 0;
+}
+
+
 
 __global__ void marix_multiply_by_const(const float* d_input, float* d_output,
 		float val, int n) {
