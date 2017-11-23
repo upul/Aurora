@@ -31,7 +31,12 @@ def depth_first_search(node, visited, topo_order):
 
 
 def sum_node_list(node_list):
-    """Custom sum function in order to avoid create redundant nodes in Python sum implementation."""
+    """
+    Custom sum function in order to avoid
+    create redundant nodes in Python sum implementation
+    :param node_list:
+    :return:
+    """
     from operator import add
     from functools import reduce
     return reduce(add, node_list)

@@ -8,6 +8,7 @@ from aurora.ndarray import ndarray, gpu_op
 def test_dummy():
     assert 1 == 1
 
+
 def test_array_set():
     ctx = ndarray.gpu(0)
     shape = (5000, 2000)
@@ -88,6 +89,16 @@ def test_matrix_elementwise_multiply():
     gpu_op.matrix_elementwise_multiply(arr_x, arr_y, arr_z)
     z = arr_z.asnumpy()
     np.testing.assert_allclose(x * y, z, rtol=1e-5)
+
+
+def test_matrix_elementwise_sqrt():
+    ctx = ndarray.gpu(0)
+    shape = (500, 200)
+    x = np.random.uniform(0, 10, size=shape).astype(np.float32)
+    arr_x = ndarray.array(x, ctx=ctx)
+    gpu_op.matrix_elementwise_sqrt(arr_x, arr_x)
+    z = arr_x.asnumpy()
+    np.testing.assert_allclose(np.sqrt(x), z, rtol=1e-5)
 
 
 def test_matrix_elementwise_multiply_by_const():

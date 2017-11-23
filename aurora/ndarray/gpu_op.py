@@ -78,6 +78,11 @@ def matrix_elementwise_div_by_const(in_mat, val, out_mat):
     _LIB.DLGpuMatrixElementwiseDivByConst(
         in_mat.handle, ctypes.c_float(val), out_mat.handle)
 
+def matrix_elementwise_sqrt(in_mat, out_mat):
+    assert isinstance(in_mat, _nd.NDArray)
+    assert isinstance(out_mat, _nd.NDArray)
+    _LIB.DLGpuMatrixElementwiseSqrt(in_mat.handle, out_mat.handle)
+
 
 def matrix_multiply(matA, transA, matB, transB, matC):
     assert isinstance(matA, _nd.NDArray)

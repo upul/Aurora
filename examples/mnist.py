@@ -82,7 +82,7 @@ if __name__ == '__main__':
     loss, W1, b1, W2, b2, W3, b3, logit = build_graph(X, y, input_size, hid_1_size, hid_2_size, output_size)
     # Using Adam optimizer
     # optimizer = au.optim.Adam(loss, params=[W1, b1, W2, b2, W3, b3], lr=lr)
-    optimizer = au.optim.SGD(loss, params=[W1, b1, W2, b2, W3, b3], lr=lr, use_gpu=use_gpu)
+    optimizer = au.optim.Adam(loss, params=[W1, b1, W2, b2, W3, b3], lr=lr, use_gpu=use_gpu)
     # Starts training
     for i in range(n_iter):
         # read next random batch from the training generator
@@ -104,4 +104,4 @@ if __name__ == '__main__':
     print('Testing accuracy: {:>.2f}'.format(test_acc))
 
     end = timeit.default_timer()
-    print('\nTime taken for training/testing: {0:.3f}'.format(end - start))
+    print('Time taken for training/testing: {0:.3f} seconds'.format(end - start))
