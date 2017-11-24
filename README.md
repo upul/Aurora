@@ -64,8 +64,12 @@ Following are some of the examples written in Aurora. For complete list of examp
 3. [Toy Neural Network](https://github.com/upul/Aurora/blob/master/examples/toy_neural_network.py)
 4. [MNIST](https://github.com/upul/Aurora/blob/master/examples/mnist.py)
 
+### Acknowledgement
+
 
 ### References.
 
-1. 
-2. 
+1. [CSE 599G1: Deep Learning System Design](http://dlsys.cs.washington.edu/) 
+2. [MXNet Architecture](https://mxnet.incubator.apache.org/architecture/index.html)
+3. [Parallel Programming With CUDA | Udacity](https://www.udacity.com/course/intro-to-parallel-programming--cs344)
+4. [Programming Massively Parallel Processors, Third Edition: A Hands-on Approach 3rd Edition](https://www.amazon.com/Programming-Massively-Parallel-Processors-Hands/dp/0128119861/ref=pd_sim_14_3?_encoding=UTF8&psc=1&refRID=1Z3KFKEPTFQJE7MZQ40G)
