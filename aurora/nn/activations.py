@@ -7,50 +7,6 @@ if sys_configs['use_gpu']:
     from aurora.ndarray import ndarray, gpu_op
 
 
-# class ReluOp(Op):
-#     def __call__(self, node_A):
-#         new_node = Op.__call__(self)
-#         new_node.inputs = [node_A]
-#         new_node.name = 'Relu({0:s})'.format(node_A.name)
-#         return new_node
-#
-#     def compute(self, node, input_vals, output_val, use_numpy=True):
-#         assert len(input_vals) == 1
-#         if use_numpy:
-#             output_val[:] = np.maximum(input_vals[0], 0)
-#         else:
-#             gpu_op.relu_gradient(input_vals[0], input_vals[1], output_val)
-#
-#     def gradient(self, node, output_grads):
-#         return [relu_grad(node.inputs[0], output_grads)]
-#
-#     def infer_shape(self, node, input_shapes):
-#         assert len(input_shapes) == 1
-#         return input_shapes[0]
-#
-#
-# class ReluGradOp(Op):
-#     def __call__(self, node_A, node_B):
-#         new_node = Op.__call__(self)
-#         new_node.inputs = [node_A, node_B]
-#         new_node.name = 'ReluGrad({0:s})'.format(node_A.name)
-#         return new_node
-#
-#     def compute(self, node, input_vals, output_val, use_numpy=True):
-#         assert len(input_vals) == 2
-#         if use_numpy:
-#             output_val[:] = (np.sign(input_vals[0]) + 1) * 0.5 * input_vals[1]
-#         else:
-#             gpu_op.relu_gradient(input_vals[0], input_vals[1], output_val)
-#
-#     def gradient(self, node, output_grads):
-#         raise NotImplementedError
-#
-#     def infer_shape(self, node, input_shapes):
-#         assert len(input_shapes) == 2
-#         assert input_shapes[0] == input_shapes[1]
-#         return input_shapes[0]
-
 class ReluOp(Op):
     def __call__(self, node_A):
         new_node = Op.__call__(self)

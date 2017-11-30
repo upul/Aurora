@@ -34,3 +34,5 @@ class TanhOp(Op):
 # Global singleton operations
 tanh = TanhOp()
 
+# TODO: (upul) other basic math functions such as sin, cos, min, max, and etc
+

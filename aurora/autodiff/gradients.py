@@ -2,7 +2,7 @@ from .utils import sum_node_list
 from .utils import find_topo_sort
 from .autodiff import ones_like
 
-
+# TODO: (upul) clean in improve comments
 def gradients(output_node, node_list):
     # a map from node to a list of gradient contributions from each output node
     node_to_output_grads_list = {}

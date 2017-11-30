@@ -86,27 +86,6 @@ class Executor:
         -------
         :return: Values of the nodes specified by the eval_list
         """
-
-        # node_to_eval_map = dict(feed_dict)
-        # topo_order = find_topo_sort(self.eval_list)
-        # for node in topo_order:
-        #     if node in feed_dict:
-        #         continue
-        #
-        #     # TODO (upul): following if condition looks like a hack. Find a better approach
-        #     if isinstance(node.op, PlaceholderOp) and node.const is not None:
-        #         node_to_eval_map[node] = node.const
-        #         continue
-        #
-        #     inputs = [node_to_eval_map[n] for n in node.inputs]
-        #     value = node.op.compute(node, inputs)
-        #     node_to_eval_map[node] = value
-        #
-        # # select values of nodes given in feed_dicts
-        # return [node_to_eval_map[node] for node in self.eval_list]
-
-        # use_numpy = self.ctx is None
-
         def are_feed_shapes_equal(sa, sb):
             if (not isinstance(sa, dict)) or (not isinstance(sb, dict)):
                 return False

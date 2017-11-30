@@ -18,7 +18,7 @@ class MNIST:
         self.X_valid, self.y_valid = valid[0], valid[1]
         self.X_test, self.y_test = test[0], test[1]
 
-    def training_batch_generator(self):
+    def train_batch_generator(self):
         while True:
             rand_indices = np.random.choice(self.X_train.shape[0], self.batch_size, False)
             yield self.X_train[rand_indices], self.y_train_one_hot[rand_indices]

@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # Create an instance of MNIST dataset and
     # create a generator for reading training data
     data = au.datasets.MNIST(batch_size=128)
-    batch_generator = data.training_batch_generator()
+    batch_generator = data.train_batch_generator()
 
     input_size = data.num_features()  # number of features
     hid_1_size = 256  # size of first hidden layer
