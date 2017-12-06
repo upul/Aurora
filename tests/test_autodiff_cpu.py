@@ -252,5 +252,15 @@ def test_sigmoid_activation():
     executor = ad.Executor([y, grad_x2])
     y_val, grad_x2_val = executor.run(feed_shapes={x2: x2_val})
     npt.assert_array_almost_equal(np.array([0.000, 0.500, 1.0]), y_val)
-    #print(grad_x2_val)
     npt.assert_array_almost_equal(np.array([0, 0.25, 0]), grad_x2_val)
+
+def test_conv2d():
+    x2 = ad.Variable(name='x2')
+    w_init = np.random.randn(2, 2, 3, 3)
+    w2 = ad.Parameter(name='w2', init=w_init)
+    y = au.nn.conv2d(x2, w2)
+    executor = ad.Executor([y])
+    x2_val = np.random.randn(1, 2, 4, 4)
+    y_val = executor.run(feed_shapes={x2: x2_val})
+    print(y_val)
+    assert y_val == 1
