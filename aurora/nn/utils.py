@@ -58,7 +58,7 @@ def col2im(cols, x_shape, filter_size=(3, 3), padding=(0, 0), stride=(1, 1)):
                 col = col.reshape((C, filter_height, filter_width))
                 x_padded[m, :, i:i + filter_height, j:j + filter_width] += col
                 idx += 1
-    if padding > 0:
+    if padding[0] or padding[1] > 0:
         return x_padded[:, :, padding_height:-padding_height, padding_width:-padding_width]
     else:
         return x_padded

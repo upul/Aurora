@@ -45,10 +45,9 @@ class ReluGradientOp(Op):
             gpu_op.relu_gradient(input_vals[0], input_vals[1], output_val)
 
     def gradient(self, node, output_grad):
-        raise NotImplementedError
+        raise NotImplementedError('Gradient of ReluGradientOp not implemented')
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
         assert len(input_shapes) == 2
         assert input_shapes[0] == input_shapes[1]
         return input_shapes[0]
