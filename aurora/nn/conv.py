@@ -1,6 +1,7 @@
 from aurora.autodiff.autodiff import Op
 from .utils import im2col, col2im
 
+
 # TODO: (upul) in the numpy version of the Conv2dOp, X_col is calculated two times.
 #       one in compute() of Conv2dOp and the second time inside the compute() of
 #       Conv2dBackwardFilter node. Can we cache it?
@@ -50,8 +51,8 @@ class Conv2dOp(Op):
         #
         filter_node = node.inputs[1]
         data_node = node.inputs[0]
-        return [conv2dBackFilter(filter_node, data_node, output_grads),
-                conv2dBackData(filter_node, data_node, output_grads)]
+        return [conv2dBackFilter(data_node, filter_node, output_grads),
+                conv2dBackData(data_node, filter_node, output_grads)]
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 2
@@ -87,8 +88,8 @@ class Conv2dBackwardFilter:
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 3
-        X = input_vals[1]  # data
-        W = input_vals[0]  # filter
+        X = input_vals[0]  # data
+        W = input_vals[1]  # filter
 
         assert len(X.shape) == 4
         assert len(W.shape) == 4
@@ -112,7 +113,7 @@ class Conv2dBackwardFilter:
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 3
-        W_size = input_shapes[0]
+        W_size = input_shapes[1]
         return W_size
 
 
@@ -127,8 +128,8 @@ class Conv2dBackwardData:
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 3
-        X = input_vals[1]  # data
-        W = input_vals[0]  # filter
+        X = input_vals[0]  # data
+        W = input_vals[1]  # filter
 
         assert len(X.shape) == 4
         assert len(W.shape) == 4
@@ -152,7 +153,7 @@ class Conv2dBackwardData:
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 3
-        X_size = input_shapes[1]
+        X_size = input_shapes[0]
         return X_size
 
 
