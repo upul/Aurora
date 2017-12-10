@@ -73,12 +73,14 @@ class Op(object):
         new_node.op = self
         return new_node
 
-    def compute(self, node, input_vals, use_gpu=False):
+    def compute(self, node, input_vals, output_val, use_numpy=True):
         """
         Given the values of input nodes, compute the output value
 
         Parameters
         ----------
+        :type use_numpy: object
+        :param use_numpy:
         :param node: Node that performs the computation
         :param input_vals: Values of input node
 
@@ -345,6 +347,30 @@ class ZerosLikeOp(Op):
             return input_shapes[0]
 
 
+class ReshapeOp(Op):
+    def __call__(self, node_A, newshape):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.newshape = newshape
+        new_node.name = 'Reshape({})'.format(node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals, output_val, use_numpy=True):
+        assert len(input_vals) == 1
+        if use_numpy:
+            assert isinstance(input_vals[0], np.ndarray)
+            output_val[:] = np.reshape(input_vals[0], newshape=node.newshape)
+        else:
+            raise NotImplementedError('GPU version of ReshapeOp not yet implemented')
+
+    def gradient(self, node, output_grads):
+        return [output_grads]
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        return node.newshape
+
+
 class MulOp(Op):
     def __call__(self, node_A, node_B):
         new_node = Op.__call__(self)
@@ -604,5 +630,6 @@ zeros_like = ZerosLikeOp()
 ones_like = OnesLikeOp()
 reduce_sum = ReduceSumOp()
 broadcast_to = BroadcastToOp()
+reshape = ReshapeOp()
 matmul = MatMulOp()
 placeholder = PlaceholderOp()
