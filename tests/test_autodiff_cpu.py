@@ -238,9 +238,9 @@ def test_matmul_var_and_param():
     expected_grad_x3_val = np.matmul(np.transpose(x2_val), np.ones_like(expected_yval))
 
     assert isinstance(y, ad.Node)
-    #assert np.array_equal(y_val, expected_yval)
-    #assert np.array_equal(grad_x2_val, expected_grad_x2_val)
-    #assert np.array_equal(grad_w2_val, expected_grad_x3_val)
+    # assert np.array_equal(y_val, expected_yval)
+    # assert np.array_equal(grad_x2_val, expected_grad_x2_val)
+    # assert np.array_equal(grad_w2_val, expected_grad_x3_val)
 
 
 def test_sigmoid_activation():
@@ -254,14 +254,36 @@ def test_sigmoid_activation():
     npt.assert_array_almost_equal(np.array([0.000, 0.500, 1.0]), y_val)
     npt.assert_array_almost_equal(np.array([0, 0.25, 0]), grad_x2_val)
 
+
 def test_conv2d():
     x2 = ad.Variable(name='x2')
-    w_init = np.random.randn(2, 2, 3, 3)
-    w2 = ad.Parameter(name='w2', init=w_init)
+    w2 = ad.Variable(name='w2')
     y = au.nn.conv2d(x2, w2)
     grad_x2, grad_w2 = ad.gradients(y, [x2, w2])
     executor = ad.Executor([y, grad_x2, grad_w2])
     x2_val = np.random.randn(1, 2, 4, 4)
-    y_val, grad_x2_val, grad_w2_val  = executor.run(feed_shapes={x2: x2_val})
-    print(y_val)
-    assert y_val == 1
+    w2_val = np.random.randn(2, 2, 3, 3)
+
+    y_val, grad_x2_val, grad_w2_val = executor.run(feed_shapes={x2: x2_val, w2: w2_val})
+
+    numerical_grad_w2 = ad.eval_numerical_grad(y,
+                                               feed_dict={x2: x2_val, w2: w2_val},
+                                               wrt=w2_val)
+    numerical_grad_x2 = ad.eval_numerical_grad(y,
+                                               feed_dict={x2: x2_val, w2: w2_val},
+                                               wrt=x2_val)
+
+    assert isinstance(y, ad.Node)
+    npt.assert_array_almost_equal(numerical_grad_w2, grad_w2_val)
+    npt.assert_array_almost_equal(numerical_grad_x2, grad_x2_val)
+
+    x2 = ad.Variable(name='x2')
+    w2 = ad.Parameter(name='w2', init=w2_val)
+    y = au.nn.conv2d(x2, w2)
+
+    grad_x2, grad_w2 = ad.gradients(y, [x2, w2])
+    executor = ad.Executor([y, grad_x2, grad_w2])
+    y_val, grad_x2_val, grad_w2_val = executor.run(feed_shapes={x2: x2_val})
+
+    assert isinstance(y, ad.Node)
+    npt.assert_array_almost_equal(numerical_grad_w2, grad_w2_val)

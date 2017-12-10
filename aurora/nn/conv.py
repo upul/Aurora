@@ -51,8 +51,8 @@ class Conv2dOp(Op):
         #
         filter_node = node.inputs[1]
         data_node = node.inputs[0]
-        return [conv2dBackFilter(data_node, filter_node, output_grads),
-                conv2dBackData(data_node, filter_node, output_grads)]
+        return [conv2dBackData(data_node, filter_node, output_grads),
+                conv2dBackFilter(data_node, filter_node, output_grads)]
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 2
