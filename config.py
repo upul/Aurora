@@ -1,1 +1,1 @@
-sys_configs = dict(use_gpu=True)
+sys_configs = dict(use_gpu=False)

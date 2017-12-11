@@ -2,9 +2,9 @@ from aurora.autodiff.autodiff import Op
 from .utils import im2col, col2im
 
 
-# TODO: (upul) in the numpy version of the Conv2dOp, X_col is calculated two times.
-#       one in compute() of Conv2dOp and the second time inside the compute() of
-#       Conv2dBackwardFilter node. Can we cache it?
+# TODO: (upul) The numpy version of the Conv2dOp, X_col is calculated twice.
+#       One in compute() of Conv2dOp and the second time inside the compute() of
+#       Conv2dBackwardFilter node. Check the feasibility of caching.
 
 class Conv2dOp(Op):
     def __call__(self, input, filter, strides=(1, 1), padding=(0, 0)):

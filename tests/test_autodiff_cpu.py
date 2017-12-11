@@ -258,7 +258,7 @@ def test_sigmoid_activation():
 def test_conv2d():
     x2 = ad.Variable(name='x2')
     w2 = ad.Variable(name='w2')
-    y = au.nn.conv2d(x2, w2)
+    y = au.nn.conv2d(input=x2, filter=w2)
     grad_x2, grad_w2 = ad.gradients(y, [x2, w2])
     executor = ad.Executor([y, grad_x2, grad_w2])
     x2_val = np.random.randn(1, 2, 4, 4)

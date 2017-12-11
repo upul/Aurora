@@ -31,8 +31,8 @@ class TanhOp(Op):
         assert len(input_shapes)
         return input_shapes[0]
 
+
 # Global singleton operations
 tanh = TanhOp()
 
 # TODO: (upul) other basic math functions such as sin, cos, min, max, and etc
-

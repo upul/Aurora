@@ -101,7 +101,7 @@ class SoftmaxOp(Op):
         return input_shapes[0]
 
 
-# TODO (upul)
+# TODO (upul): Other commonly use activation functions
 
 # Global singleton operators
 relu = ReluOp()
