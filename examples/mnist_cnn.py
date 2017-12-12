@@ -1,3 +1,15 @@
+"""Trains a simple convnet on the MNIST dataset.
+=====================================================================
+Numpy:   Gets 98.38 % test accuracy after 5500 iterations with
+         64 batch size.
+
+         Running Time: 2196.72 seconds on Intel(R) Core(TM) i7-7700K
+         CPU @ 4.20GHz 8 Cores.
+
+
+GPU:    Will be added later
+"""
+
 import argparse
 import timeit
 
@@ -11,17 +23,17 @@ def build_network(image, y, batch_size=32):
 
     reshaped_images = ad.reshape(image, newshape=(batch_size, 1, 28, 28))
 
-    # weight in (batch_size, number_kernels, kernel_height, kernel_width)
-    W1 = ad.Parameter(name='W1', init=rand.normal(scale=0.1, size=(5, 1, 5, 5)))
+    # weight in (number_kernels, color_depth, kernel_height, kernel_width)
+    W1 = ad.Parameter(name='W1', init=rand.normal(scale=0.1, size=(10, 1, 5, 5)))
     conv1 = au.nn.conv2d(input=reshaped_images, filter=W1)
     activation1 = au.nn.relu(conv1)
-    # size of conv1: batch_size x 5 x 24 x 24
+    # size of activation1: batch_size x 10 x 24 x 24
 
-    # weight in (batch_size, number_kernels, kernel_height, kernel_width)
-    W2 = ad.Parameter(name='W2', init=rand.normal(scale=0.1, size=(5, 5, 5, 5)))
+    # weight in (number_kernels, number_kernels of previous layer, kernel_height, kernel_width)
+    W2 = ad.Parameter(name='W2', init=rand.normal(scale=0.1, size=(5, 10, 5, 5)))
     conv2 = au.nn.conv2d(input=activation1, filter=W2)
     activation2 = au.nn.relu(conv2)
-    # size of conv1: batch_size x 5 x 20 x 20 = batch_size x 2000
+    # size of activation2: batch_size x 5 x 20 x 20 = batch_size x 2000
 
     flatten = ad.reshape(activation2, newshape=(batch_size, 2000))
 
@@ -99,6 +111,7 @@ if __name__ == '__main__':
             fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
             print(fmt_str.format(i, loss_now[0]))
 
+    # printing validation accuracy
     val_acc = measure_accuracy(logits, data.validation(), batch_size=64, use_gpu=use_gpu)
     print('Validation accuracy: {:>.2f}'.format(val_acc))
 
