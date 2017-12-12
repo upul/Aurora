@@ -19,7 +19,7 @@ def measure_accuracy(activation, data, use_gpu=False):
 
 def build_graph(X, y, input_size, hid_1_size, hid_2_size, output_size):
     # Parameter of the model
-    rand = np.random.RandomState(seed=123)
+    rand = np.random.RandomState(seed=1024)
     W1 = ad.Parameter(name="W1", init=rand.normal(scale=0.1, size=(input_size, hid_1_size)))
     b1 = ad.Parameter(name="b1", init=rand.normal(scale=0.1, size=(hid_1_size)))
 
