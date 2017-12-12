@@ -364,12 +364,33 @@ class ReshapeOp(Op):
             raise NotImplementedError('GPU version of ReshapeOp not yet implemented')
 
     def gradient(self, node, output_grads):
-        return [output_grads]
+        return [reshape_grad(node.inputs[0], output_grads)]
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 1
         return node.newshape
 
+
+class ReshapeGradientOp(Op):
+    def __call__(self, node_A, node_B):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A, node_B]
+        new_node.name = 'ReshapeGradientOp({0:s})'.format(node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals, output_val, use_numpy=True):
+        assert len(input_vals) == 2
+        if use_numpy:
+            output_val[:] = input_vals[1].reshape(input_vals[0].shape)
+        else:
+            raise NotImplementedError('GPU version of ReshapeGradientOp not yet implemented')
+
+    def gradient(self, node, output_grads):
+        raise NotImplementedError('Gradient of ReshapeGradientOp not supported')
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 2
+        return input_shapes[0]
 
 class MulOp(Op):
     def __call__(self, node_A, node_B):
@@ -631,5 +652,6 @@ ones_like = OnesLikeOp()
 reduce_sum = ReduceSumOp()
 broadcast_to = BroadcastToOp()
 reshape = ReshapeOp()
+reshape_grad = ReshapeGradientOp()
 matmul = MatMulOp()
 placeholder = PlaceholderOp()

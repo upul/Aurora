@@ -88,20 +88,40 @@ class Conv2dBackwardFilter:
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 3
+
         X = input_vals[0]  # data
         W = input_vals[1]  # filter
 
         assert len(X.shape) == 4
         assert len(W.shape) == 4
 
+        batch_size = X.shape[0]
+        X_height = X.shape[2]
+        X_width = X.shape[3]
+
+        padding_height = node.padding[0]
+        padding_width = node.padding[1]
+        stride_height = node.strides[0]
+        stride_width = node.strides[1]
+
         filter_height = W.shape[2]
         filter_width = W.shape[3]
         n_filters = W.shape[0]
 
+        out_height = int((X_height - filter_height + 2 * padding_height) / stride_height + 1)
+        out_width = int((X_width - filter_width + 2 * padding_width) / stride_width + 1)
+        out_grad = input_vals[2]
+
+        # If this node is the last of the flow-graph, probably next node would be a
+        # flatten node. Hence, we need to reshape out_grad to match the size of
+        # the output of conv2d node.
+        #if out_grad.shape != (batch_size, n_filters, out_height, out_width):
+            #out_grad = out_grad.reshape(batch_size, n_filters, out_height, out_width)
+
         if use_numpy:
             X_col = im2col(X, filter_size=(filter_height, filter_width),
                            padding=node.padding, stride=node.strides)
-            dout_reshaped = input_vals[2].transpose(1, 2, 3, 0).reshape(n_filters, -1)
+            dout_reshaped = out_grad.transpose(1, 2, 3, 0).reshape(n_filters, -1)
             dW = dout_reshaped @ X_col.T
             output_val[:] = dW.reshape(W.shape)
 
