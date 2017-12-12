@@ -6,30 +6,30 @@ import aurora.autodiff as ad
 import numpy as np
 
 
-def build_network(image, y, batch_size=128):
+def build_network(image, y, batch_size=32):
     rand = np.random.RandomState(seed=1024)
 
     reshaped_images = ad.reshape(image, newshape=(batch_size, 1, 28, 28))
 
     # weight in (batch_size, number_kernels, kernel_height, kernel_width)
-    W1 = ad.Parameter(name='W1', init=rand.normal(scale=0.01, size=(5, 1, 3, 3)))
+    W1 = ad.Parameter(name='W1', init=rand.normal(scale=0.1, size=(5, 1, 5, 5)))
     conv1 = au.nn.conv2d(input=reshaped_images, filter=W1)
     activation1 = au.nn.relu(conv1)
-    # size of conv1: batch_size x 5 x 26 x 26
+    # size of conv1: batch_size x 5 x 24 x 24
 
     # weight in (batch_size, number_kernels, kernel_height, kernel_width)
-    W2 = ad.Parameter(name='W2', init=rand.normal(scale=0.01, size=(5, 5, 3, 3)))
+    W2 = ad.Parameter(name='W2', init=rand.normal(scale=0.1, size=(5, 5, 5, 5)))
     conv2 = au.nn.conv2d(input=activation1, filter=W2)
     activation2 = au.nn.relu(conv2)
-    # size of conv1: batch_size x 5 x 24 x 24 = batch_size x 2880
+    # size of conv1: batch_size x 5 x 20 x 20 = batch_size x 2000
 
-    flatten = ad.reshape(activation2, newshape=(batch_size, 2880))
+    flatten = ad.reshape(activation2, newshape=(batch_size, 2000))
 
-    W3 = ad.Parameter(name='W3', init=rand.normal(scale=0.1, size=(2880, 1000)))
+    W3 = ad.Parameter(name='W3', init=rand.normal(scale=0.1, size=(2000, 500)))
     Z3 = ad.matmul(flatten, W3)
     activation3 = au.nn.relu(Z3)
 
-    W4 = ad.Parameter(name='W4', init=rand.normal(scale=0.1, size=(1000, 10)))
+    W4 = ad.Parameter(name='W4', init=rand.normal(scale=0.1, size=(500, 10)))
     logits = ad.matmul(activation3, W4)
 
     loss = au.nn.cross_entropy_with_logits(logits, y)
@@ -82,14 +82,14 @@ if __name__ == '__main__':
 
     start = timeit.default_timer()
 
-    data = au.datasets.MNIST(batch_size=32)
+    data = au.datasets.MNIST(batch_size=64)
     batch_generator = data.train_batch_generator()
 
     # images in (batch_size, color_depth, height, width)
     images = ad.Variable(name='images')
     labels = ad.Variable(name='y')
 
-    loss, W1, W2, W3, W4, logits = build_network(images, labels, batch_size=32)
+    loss, W1, W2, W3, W4, logits = build_network(images, labels, batch_size=64)
     optimizer = au.optim.Adam(loss, params=[W1, W2, W3, W4], lr=1e-4, use_gpu=use_gpu)
 
     for i in range(n_iter):
@@ -99,11 +99,11 @@ if __name__ == '__main__':
             fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
             print(fmt_str.format(i, loss_now[0]))
 
-    val_acc = measure_accuracy(logits, data.validation(), batch_size=32, use_gpu=use_gpu)
+    val_acc = measure_accuracy(logits, data.validation(), batch_size=64, use_gpu=use_gpu)
     print('Validation accuracy: {:>.2f}'.format(val_acc))
 
     # printing testing accuracy
-    test_acc = measure_accuracy(logits, data.testing(), batch_size=32, use_gpu=use_gpu)
+    test_acc = measure_accuracy(logits, data.testing(), batch_size=64, use_gpu=use_gpu)
     print('Testing accuracy: {:>.2f}'.format(test_acc))
 
     end = timeit.default_timer()
