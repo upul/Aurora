@@ -1,6 +1,6 @@
 """Trains a simple convnet on the MNIST dataset.
 =====================================================================
-Numpy:   Gets 98.38 % test accuracy after 5500 iterations with
+Numpy:   Gets 98.15 % test accuracy after 5000 iterations with
          64 batch size.
 
          Running Time: 2196.72 seconds on Intel(R) Core(TM) i7-7700K
@@ -25,25 +25,30 @@ def build_network(image, y, batch_size=32):
 
     # weight in (number_kernels, color_depth, kernel_height, kernel_width)
     W1 = ad.Parameter(name='W1', init=rand.normal(scale=0.1, size=(10, 1, 5, 5)))
-    conv1 = au.nn.conv2d(input=reshaped_images, filter=W1)
+    b1 = ad.Parameter(name='b1', init=rand.normal(scale=0.1, size=10))
+    conv1 = au.nn.conv2d(input=reshaped_images, filter=W1, bias=b1)
     activation1 = au.nn.relu(conv1)
     # size of activation1: batch_size x 10 x 24 x 24
 
     # weight in (number_kernels, number_kernels of previous layer, kernel_height, kernel_width)
     W2 = ad.Parameter(name='W2', init=rand.normal(scale=0.1, size=(5, 10, 5, 5)))
-    conv2 = au.nn.conv2d(input=activation1, filter=W2)
+    b2 = ad.Parameter(name='b2', init=rand.normal(scale=0.1, size=5))
+    conv2 = au.nn.conv2d(input=activation1, filter=W2, bias=b2)
     activation2 = au.nn.relu(conv2)
     # size of activation2: batch_size x 5 x 20 x 20 = batch_size x 2000
 
     flatten = ad.reshape(activation2, newshape=(batch_size, 2000))
 
     W3 = ad.Parameter(name='W3', init=rand.normal(scale=0.1, size=(2000, 500)))
+    b3 = ad.Parameter(name='b3', init=rand.normal(scale=0.1, size=500))
     Z3 = ad.matmul(flatten, W3)
+    Z3 = Z3 + ad.broadcast_to(b3, Z3)
     activation3 = au.nn.relu(Z3)
 
     W4 = ad.Parameter(name='W4', init=rand.normal(scale=0.1, size=(500, 10)))
+    b4 = ad.Parameter(name='b4', init=rand.normal(scale=0.1, size=10))
     logits = ad.matmul(activation3, W4)
-
+    logits = logits + ad.broadcast_to(b4, logits)
     loss = au.nn.cross_entropy_with_logits(logits, y)
 
     return loss, W1, W2, W3, W4, logits

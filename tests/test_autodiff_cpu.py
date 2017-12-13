@@ -258,35 +258,54 @@ def test_sigmoid_activation():
 def test_conv2d():
     x2 = ad.Variable(name='x2')
     w2 = ad.Variable(name='w2')
-    y = au.nn.conv2d(input=x2, filter=w2)
-    grad_x2, grad_w2 = ad.gradients(y, [x2, w2])
-    executor = ad.Executor([y, grad_x2, grad_w2])
+    b2 = ad.Variable(name='b2')
+
+    y = au.nn.conv2d(input=x2, filter=w2, bias=b2)
+
+    grad_x2, grad_w2, grad_b2 = ad.gradients(y, [x2, w2, b2])
+    executor = ad.Executor([y, grad_x2, grad_w2, grad_b2])
     x2_val = np.random.randn(1, 2, 4, 4)
     w2_val = np.random.randn(2, 2, 3, 3)
+    b2_val = np.random.randn(2,)
 
-    y_val, grad_x2_val, grad_w2_val = executor.run(feed_shapes={x2: x2_val, w2: w2_val})
+    y_val, grad_x2_val, grad_w2_val, grad_b2_val = executor.run(feed_shapes={x2: x2_val,
+                                                                             w2: w2_val,
+                                                                             b2: b2_val})
 
     numerical_grad_w2 = ad.eval_numerical_grad(y,
-                                               feed_dict={x2: x2_val, w2: w2_val},
+                                               feed_dict={x2: x2_val,
+                                                          w2: w2_val,
+                                                          b2: b2_val},
                                                wrt=w2_val)
     numerical_grad_x2 = ad.eval_numerical_grad(y,
-                                               feed_dict={x2: x2_val, w2: w2_val},
+                                               feed_dict={x2: x2_val,
+                                                          w2: w2_val,
+                                                          b2: b2_val},
                                                wrt=x2_val)
+    numerical_grad_b2 = ad.eval_numerical_grad(y,
+                                               feed_dict={x2: x2_val,
+                                                          w2: w2_val,
+                                                          b2: b2_val},
+                                               wrt=b2_val)
 
     assert isinstance(y, ad.Node)
     npt.assert_array_almost_equal(numerical_grad_w2, grad_w2_val)
     npt.assert_array_almost_equal(numerical_grad_x2, grad_x2_val)
+    npt.assert_array_almost_equal(numerical_grad_b2, grad_b2_val)
 
     x2 = ad.Variable(name='x2')
     w2 = ad.Parameter(name='w2', init=w2_val)
-    y = au.nn.conv2d(x2, w2)
+    b2 = ad.Parameter(name='b2', init=b2_val)
+    y = au.nn.conv2d(x2, w2, b2)
 
-    grad_x2, grad_w2 = ad.gradients(y, [x2, w2])
-    executor = ad.Executor([y, grad_x2, grad_w2])
-    y_val, grad_x2_val, grad_w2_val = executor.run(feed_shapes={x2: x2_val})
+    grad_x2, grad_w2, grad_b2 = ad.gradients(y, [x2, w2, b2])
+    executor = ad.Executor([y, grad_x2, grad_w2, grad_b2])
+    y_val, grad_x2_val, grad_w2_val, grad_b2_val = executor.run(feed_shapes={x2: x2_val})
 
     assert isinstance(y, ad.Node)
     npt.assert_array_almost_equal(numerical_grad_w2, grad_w2_val)
+    npt.assert_array_almost_equal(numerical_grad_b2, grad_b2_val)
+    npt.assert_array_almost_equal(numerical_grad_x2, grad_x2_val)
 
 
 def test_reshape():

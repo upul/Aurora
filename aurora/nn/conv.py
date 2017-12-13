@@ -7,18 +7,18 @@ from .utils import im2col, col2im
 #       Conv2dBackwardFilter node. Check the feasibility of caching.
 
 class Conv2dOp(Op):
-    def __call__(self, input, filter, strides=(1, 1), padding=(0, 0)):
+    def __call__(self, input, filter, bias, strides=(1, 1), padding=(0, 0)):
         new_node = Op.__call__(self)
         # input: 4-D data, (batch_size, depth, height, width)
         # filter: 4-D kernel (num_filters, depth, kernel_height, kernel_width)
-        new_node.inputs = [input, filter]
+        new_node.inputs = [input, filter, bias]
         new_node.strides = strides
         new_node.padding = padding
         new_node.name = 'Conv2d({0:s}, {1:s})'.format(input.name, filter.name)
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
-        assert len(input_vals) == 2
+        assert len(input_vals) == 3
 
         X = input_vals[0]
         h = X.shape[2]
@@ -29,6 +29,8 @@ class Conv2dOp(Op):
         filter_height = W.shape[2]
         filter_width = W.shape[3]
         n_filters = W.shape[0]
+
+        b = input_vals[2].reshape(n_filters, -1)
 
         padding_height = node.padding[0]
         padding_width = node.padding[1]
@@ -41,7 +43,7 @@ class Conv2dOp(Op):
             X_col = im2col(X, filter_size=(filter_height, filter_width),
                            padding=node.padding, stride=node.strides)
             W_col = W.reshape(n_filters, -1)
-            out = W_col @ X_col
+            out = W_col @ X_col + b
             out = out.reshape(n_filters, h_new, w_new, batch_size)
             output_val[:] = out.transpose(3, 0, 1, 2)
         else:
@@ -52,10 +54,11 @@ class Conv2dOp(Op):
         filter_node = node.inputs[1]
         data_node = node.inputs[0]
         return [conv2dBackData(data_node, filter_node, output_grads),
-                conv2dBackFilter(data_node, filter_node, output_grads)]
+                conv2dBackFilter(data_node, filter_node, output_grads),
+                conv2dBackBias(output_grads)]
 
     def infer_shape(self, node, input_shapes):
-        assert len(input_shapes) == 2
+        assert len(input_shapes) == 3
 
         X_shape = input_shapes[0]
         h = X_shape[2]
@@ -77,7 +80,7 @@ class Conv2dOp(Op):
         return batch_size, d_new, h_new, w_new
 
 
-class Conv2dBackwardFilter:
+class Conv2dBackwardFilter(Op):
     def __call__(self, node_A, node_B, output_grad, strides=(1, 1), padding=(0, 0)):
         new_node = Op.__call__(self)
         new_node.inputs = [node_A, node_B, output_grad]
@@ -95,28 +98,10 @@ class Conv2dBackwardFilter:
         assert len(X.shape) == 4
         assert len(W.shape) == 4
 
-        batch_size = X.shape[0]
-        X_height = X.shape[2]
-        X_width = X.shape[3]
-
-        padding_height = node.padding[0]
-        padding_width = node.padding[1]
-        stride_height = node.strides[0]
-        stride_width = node.strides[1]
-
         filter_height = W.shape[2]
         filter_width = W.shape[3]
         n_filters = W.shape[0]
-
-        out_height = int((X_height - filter_height + 2 * padding_height) / stride_height + 1)
-        out_width = int((X_width - filter_width + 2 * padding_width) / stride_width + 1)
         out_grad = input_vals[2]
-
-        # If this node is the last of the flow-graph, probably next node would be a
-        # flatten node. Hence, we need to reshape out_grad to match the size of
-        # the output of conv2d node.
-        #if out_grad.shape != (batch_size, n_filters, out_height, out_width):
-            #out_grad = out_grad.reshape(batch_size, n_filters, out_height, out_width)
 
         if use_numpy:
             X_col = im2col(X, filter_size=(filter_height, filter_width),
@@ -137,7 +122,7 @@ class Conv2dBackwardFilter:
         return W_size
 
 
-class Conv2dBackwardData:
+class Conv2dBackwardData(Op):
     def __call__(self, node_A, node_B, output_grad, strides=(1, 1), padding=(0, 0)):
         new_node = Op.__call__(self)
         new_node.inputs = [node_A, node_B, output_grad]
@@ -177,7 +162,34 @@ class Conv2dBackwardData:
         return X_size
 
 
+class Conv2dBackwardBias(Op):
+    def __call__(self, node_A):
+        new_node = Op.__call__(self)
+        new_node.inputs = [node_A]
+        new_node.name = "Conv2dBackwardBiase(%s)" % (node_A.name)
+        return new_node
+
+    def compute(self, node, input_vals, output_val, use_numpy=True):
+        assert len(input_vals) == 1
+
+        if use_numpy:
+            # db = input_vals[0].sum(axis=(0, 2, 3))
+            output_val[:] = input_vals[0].sum(axis=(0, 2, 3))
+        else:
+            raise NotImplementedError('GPU version of Conv2dBackwardBias not yet implemented')
+
+    def gradient(self, node, output_grads):
+        raise NotImplementedError('Gradient of ReluGradientOp not implemented')
+
+    def infer_shape(self, node, input_shapes):
+        assert len(input_shapes) == 1
+        # size of the input_shape[0] = (batch_size, num_filters, filter_height, filter_width)
+        return (input_shapes[0][1],)
+
+
+
 # Global singleton operators
 conv2d = Conv2dOp()
 conv2dBackFilter = Conv2dBackwardFilter()
 conv2dBackData = Conv2dBackwardData()
+conv2dBackBias = Conv2dBackwardBias()

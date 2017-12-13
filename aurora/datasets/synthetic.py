@@ -1,6 +1,6 @@
 import numpy as np
 
-
+# TODO: (upul) improve the interface of following method
 def spiral(num_cls, dim, point_per_cls, rnd_state=1024):
     np.random.seed(rnd_state)
     points_per_cls = 100  # number of points per class
