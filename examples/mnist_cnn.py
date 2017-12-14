@@ -1,9 +1,9 @@
 """Trains a simple convnet on the MNIST dataset.
 =====================================================================
-Numpy:   Gets 98.15 % test accuracy after 5000 iterations with
+Numpy:   Gets 98.00 % test accuracy after 4500 iterations with
          64 batch size.
 
-         Running Time: 2196.72 seconds on Intel(R) Core(TM) i7-7700K
+         Running Time: 1149.08 seconds on Intel(R) Core(TM) i7-7700K
          CPU @ 4.20GHz 8 Cores.
 
 
