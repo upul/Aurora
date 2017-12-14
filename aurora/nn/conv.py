@@ -1,5 +1,6 @@
 from aurora.autodiff.autodiff import Op
-from .utils import im2col, col2im
+from .utils import col2im
+from .im2col import im2col
 
 
 # TODO: (upul) The numpy version of the Conv2dOp, X_col is calculated twice.
@@ -40,8 +41,8 @@ class Conv2dOp(Op):
         if use_numpy:
             h_new = int((h - filter_height + 2 * padding_height) / stride_height + 1)
             w_new = int((w - filter_width + 2 * padding_width) / stride_width + 1)
-            X_col = im2col(X, filter_size=(filter_height, filter_width),
-                           padding=node.padding, stride=node.strides)
+            X_col = im2col(X, filter_height, filter_width, padding_height, padding_width,
+                           stride_height, stride_width)
             W_col = W.reshape(n_filters, -1)
             out = W_col @ X_col + b
             out = out.reshape(n_filters, h_new, w_new, batch_size)
@@ -103,9 +104,14 @@ class Conv2dBackwardFilter(Op):
         n_filters = W.shape[0]
         out_grad = input_vals[2]
 
+        padding_height = node.padding[0]
+        padding_width = node.padding[1]
+        stride_height = node.strides[0]
+        stride_width = node.strides[1]
+
         if use_numpy:
-            X_col = im2col(X, filter_size=(filter_height, filter_width),
-                           padding=node.padding, stride=node.strides)
+            X_col = im2col(X, filter_height, filter_width, padding_height, padding_width,
+                           stride_height, stride_width)
             dout_reshaped = out_grad.transpose(1, 2, 3, 0).reshape(n_filters, -1)
             dW = dout_reshaped @ X_col.T
             output_val[:] = dW.reshape(W.shape)
@@ -185,7 +191,6 @@ class Conv2dBackwardBias(Op):
         assert len(input_shapes) == 1
         # size of the input_shape[0] = (batch_size, num_filters, filter_height, filter_width)
         return (input_shapes[0][1],)
-
 
 
 # Global singleton operators

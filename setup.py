@@ -1,4 +1,14 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Build import cythonize
+import numpy
+
+extensions = [
+    Extension('aurora.nn.im2col', ['aurora/nn/im2col.pyx'],
+              include_dirs=[numpy.get_include()]
+              ),
+]
 
 setup(
     name='aurora',
@@ -8,5 +18,7 @@ setup(
     author='Upul Bandara',
     author_email='upulbandara@gmail.com',
     license='MIT',
+    ext_modules=cythonize(extensions),
     packages=find_packages(exclude=['Aurora.tests'])
+
 )
