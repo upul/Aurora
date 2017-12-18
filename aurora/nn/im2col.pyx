@@ -72,3 +72,55 @@ def im2col(np.float64_t[:, :, :, :] image,
     _im2col_helper(x_padded, out, h_new, w_new, C, M, filter_height, filter_width, stride_height, stride_width)
     
     return out
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef _col2img_helper(np.float64_t[:, :] cols, np.float64_t[:, :, :, :] x_padded, int filter_height, int filter_width,
+                   int N, int C, int H, int W, int H_padded, int W_padded, int padding_height, int padding_width,
+                   int stride_height, int stride_width):
+    cdef int idx = 0
+    cdef int i, j, m, c, sh, sw
+    cdef int start_height, start_width, k
+    cdef np.float64_t[:] col
+
+    cdef int p = H_padded - filter_height + 1
+    cdef int q = W_padded - filter_width + 1
+
+    i =0
+    while i < p:
+    #for i in range(0, p, stride):
+        j = 0
+        while j < q:
+        #for j in range(0, q, stride):
+            for m in range(N):
+                col = cols[:, idx]
+                start_height = i
+                start_width = j
+                k = 0
+                for c in range(C):
+                    for sh in range(start_height, start_height + filter_height):
+                        for sw in range(start_width, start_width + filter_width):
+                            x_padded[m, c, sh, sw] += col[k]
+                            k += 1
+                idx += 1
+            j += stride_width
+        i += stride_height
+    if padding_height > 0 or padding_width >0:
+        return x_padded[:, :, padding_height:-padding_height, padding_width:-padding_width]
+    else:
+        return x_padded
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def col2im(np.float64_t[:, :] cols,  int batch_size, int no_color_challel, int image_height,
+                   int image_width, int filter_height=3, int filter_width=3,
+                   int padding_height=0, int padding_width=0,
+                   int stride_height=1, int stride_width=1):
+    cdef int H_padded = image_height + 2 * padding_height
+    cdef int W_padded = image_width + 2 * padding_width
+    cdef np.float64_t[:, :, :, :]  x_padded = np.zeros((batch_size, no_color_challel, H_padded, W_padded))
+
+    _col2img_helper(cols, x_padded, filter_height, filter_width, batch_size, no_color_challel,
+                  image_height, image_width, H_padded, W_padded, padding_height, padding_width,
+                  stride_height, stride_width)
+    return x_padded

@@ -1,6 +1,5 @@
 from aurora.autodiff.autodiff import Op
-from .utils import col2im
-from .im2col import im2col
+from aurora.nn.im2col import im2col, col2im
 
 
 # TODO: (upul) The numpy version of the Conv2dOp, X_col is calculated twice.
@@ -154,8 +153,13 @@ class Conv2dBackwardData(Op):
             dout_reshaped = input_vals[2].transpose(1, 2, 3, 0).reshape(n_filters, -1)
 
             dX_col = W_reshape.T @ dout_reshaped
-            output_val[:] = col2im(dX_col, X.shape, filter_size=(filter_height, filter_width),
-                                   padding=node.padding, stride=node.strides)
+            batch_size, n_channels, img_height, img_width = X.shape
+            padding_height, padding_width = node.padding
+            stride_height, stride_width = node.strides
+            output_val[:] = col2im(dX_col, batch_size, n_channels,
+                                   img_height, img_width, filter_height, filter_width,
+                                   padding_height, padding_width,
+                                   stride_height, stride_width)
         else:
             raise NotImplementedError('GPU version of Conv2dBackwardData not yet implemented')
 
