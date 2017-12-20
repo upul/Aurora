@@ -1,9 +1,9 @@
 """Trains a simple convnet on the MNIST dataset.
 =====================================================================
-Numpy:   Gets 98.12 % test accuracy after 4500 iterations with
+Numpy:   Gets 98.24 % test accuracy after 5000 iterations with
          64 batch size.
 
-         Running Time: 738.75 seconds on Intel(R) Core(TM) i7-7700K
+         Running Time: 818.84 seconds on Intel(R) Core(TM) i7-7700K
          CPU @ 4.20GHz 8 Cores.
 
 
@@ -51,7 +51,7 @@ def build_network(image, y, batch_size=32):
     logits = logits + ad.broadcast_to(b4, logits)
     loss = au.nn.cross_entropy_with_logits(logits, y)
 
-    return loss, W1, W2, W3, W4, logits
+    return loss, W1, b1, W2, b2, W3, b3, W4, b4, logits
 
 
 def measure_accuracy(activation, data, batch_size=32, use_gpu=False):
@@ -106,8 +106,9 @@ if __name__ == '__main__':
     images = ad.Variable(name='images')
     labels = ad.Variable(name='y')
 
-    loss, W1, W2, W3, W4, logits = build_network(images, labels, batch_size=64)
-    optimizer = au.optim.Adam(loss, params=[W1, W2, W3, W4], lr=1e-4, use_gpu=use_gpu)
+    loss, W1, b1, W2, b2, W3, b3, W4, b4, logits = build_network(images, labels, batch_size=64)
+    opt_params = [W1, b1, W2, b2, W3, b3, W4, b4]
+    optimizer = au.optim.Adam(loss, params=opt_params, lr=1e-4, use_gpu=use_gpu)
 
     for i in range(n_iter):
         X_batch, y_batch = next(batch_generator)
