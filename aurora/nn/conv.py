@@ -80,7 +80,7 @@ class Conv2dOp(Op):
         return batch_size, d_new, h_new, w_new
 
 
-class Conv2dBackwardFilter(Op):
+class Conv2dGradientFilter(Op):
     def __call__(self, node_A, node_B, output_grad, strides=(1, 1), padding=(0, 0)):
         new_node = Op.__call__(self)
         new_node.inputs = [node_A, node_B, output_grad]
@@ -127,7 +127,7 @@ class Conv2dBackwardFilter(Op):
         return W_size
 
 
-class Conv2dBackwardData(Op):
+class Conv2dGradientData(Op):
     def __call__(self, node_A, node_B, output_grad, strides=(1, 1), padding=(0, 0)):
         new_node = Op.__call__(self)
         new_node.inputs = [node_A, node_B, output_grad]
@@ -172,7 +172,7 @@ class Conv2dBackwardData(Op):
         return X_size
 
 
-class Conv2dBackwardBias(Op):
+class Conv2dGradientBias(Op):
     def __call__(self, node_A):
         new_node = Op.__call__(self)
         new_node.inputs = [node_A]
@@ -199,6 +199,6 @@ class Conv2dBackwardBias(Op):
 
 # Global singleton operators
 conv2d = Conv2dOp()
-conv2dBackFilter = Conv2dBackwardFilter()
-conv2dBackData = Conv2dBackwardData()
-conv2dBackBias = Conv2dBackwardBias()
+conv2dBackFilter = Conv2dGradientFilter()
+conv2dBackData = Conv2dGradientData()
+conv2dBackBias = Conv2dGradientBias()

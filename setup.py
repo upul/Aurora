@@ -8,6 +8,9 @@ extensions = [
     Extension('aurora.nn.im2col', ['aurora/nn/im2col.pyx'],
               include_dirs=[numpy.get_include()]
               ),
+    Extension('aurora.nn.fast_pooling', ['aurora/nn/fast_pooling.pyx'],
+              include_dirs=[numpy.get_include()]
+              ),
 ]
 
 setup(
