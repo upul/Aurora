@@ -1,9 +1,9 @@
 """Trains a simple convnet on the MNIST dataset.
 =====================================================================
-Numpy:   Gets 98.24 % test accuracy after 5000 iterations with
+Numpy:   Gets 98.01 % test accuracy after 5000 iterations with
          64 batch size.
 
-         Running Time: 818.84 seconds on Intel(R) Core(TM) i7-7700K
+         Running Time: 4131.76 seconds on Intel(R) Core(TM) i7-7700K
          CPU @ 4.20GHz 8 Cores.
 
 
@@ -24,22 +24,25 @@ def build_network(image, y, batch_size=32):
     reshaped_images = ad.reshape(image, newshape=(batch_size, 1, 28, 28))
 
     # weight in (number_kernels, color_depth, kernel_height, kernel_width)
-    W1 = ad.Parameter(name='W1', init=rand.normal(scale=0.1, size=(10, 1, 5, 5)))
-    b1 = ad.Parameter(name='b1', init=rand.normal(scale=0.1, size=10))
+    W1 = ad.Parameter(name='W1', init=rand.normal(scale=0.1, size=(16, 1, 5, 5)))
+    b1 = ad.Parameter(name='b1', init=rand.normal(scale=0.1, size=16))
     conv1 = au.nn.conv2d(input=reshaped_images, filter=W1, bias=b1)
     activation1 = au.nn.relu(conv1)
     # size of activation1: batch_size x 10 x 24 x 24
 
     # weight in (number_kernels, number_kernels of previous layer, kernel_height, kernel_width)
-    W2 = ad.Parameter(name='W2', init=rand.normal(scale=0.1, size=(5, 10, 5, 5)))
-    b2 = ad.Parameter(name='b2', init=rand.normal(scale=0.1, size=5))
+    W2 = ad.Parameter(name='W2', init=rand.normal(scale=0.1, size=(32, 16, 5, 5)))
+    b2 = ad.Parameter(name='b2', init=rand.normal(scale=0.1, size=32))
     conv2 = au.nn.conv2d(input=activation1, filter=W2, bias=b2)
     activation2 = au.nn.relu(conv2)
-    # size of activation2: batch_size x 5 x 20 x 20 = batch_size x 2000
+    # size of activation2: batch_size x 32 x 20 x 20
 
-    flatten = ad.reshape(activation2, newshape=(batch_size, 2000))
+    pooling1 = au.nn.maxPool(activation2, filter=(2, 2), strides=(2, 2))
+    # size of activation2: batch_size x 32 x 10 x 10 = batch_size x 3200
 
-    W3 = ad.Parameter(name='W3', init=rand.normal(scale=0.1, size=(2000, 500)))
+    flatten = ad.reshape(pooling1, newshape=(batch_size, 3200))
+
+    W3 = ad.Parameter(name='W3', init=rand.normal(scale=0.1, size=(3200, 500)))
     b3 = ad.Parameter(name='b3', init=rand.normal(scale=0.1, size=500))
     Z3 = ad.matmul(flatten, W3)
     Z3 = Z3 + ad.broadcast_to(b3, Z3)

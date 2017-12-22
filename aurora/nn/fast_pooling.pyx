@@ -62,20 +62,27 @@ def max_pool_forward(np.float64_t[:, :, :, :] data, int filter_height, int filte
 
     return A
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef max_val(np.float64_t[:, :] arr):
+    cdef float current_max = arr[0, 0]
+    cdef int i, j
+    cdef float current
+    for i in range(arr.shape[0]):
+        for j in range(arr.shape[1]):
+            current = arr[i, j]
+            if current > current_max:
+                current_max = current
+    return current_max
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def max_pool_backward(np.float64_t[:, :, :, :] output_grad, np.float64_t[:, :, :, :] input_data,
-                  int filter_height=2, int filter_width=2, int stride_height=2,
-                  int stride_width=2):
+cdef innter_xxx(np.float64_t[:, :, :, :] output_grad, np.float64_t[:, :, :, :] input_data,
+              int batch_size, int channels, int height, int width,
+              int filter_height, int filter_width, int stride_height, int stride_width):
 
-    batch_size = output_grad.shape[0]
-    channels = output_grad.shape[1]
-    height = output_grad.shape[2]
-    width = output_grad.shape[3]
-
-    # Initialize dA_prev with zeros (≈1 line)
     dA_prev = np.zeros_like(input_data)
+
     cdef np.float64_t[:, :, :]  a_prev
     cdef int h, w, c, vert_start, vert_end, horiz_start, horiz_end
     for i in range(batch_size):                       # loop over the training examples
@@ -99,11 +106,28 @@ def max_pool_backward(np.float64_t[:, :, :, :] output_grad, np.float64_t[:, :, :
                     # Use the corners and "c" to define the current slice from a_prev (≈1 line)
                     a_prev_slice = a_prev[c, vert_start:vert_end, horiz_start:horiz_end]
                     # Create the mask from a_prev_slice (≈1 line)
-                    mask = (a_prev_slice == np.max(a_prev_slice)) #create_mask_from_window(a_prev_slice)
+                    mask = (a_prev_slice == max_val(a_prev_slice)) #create_mask_from_window(a_prev_slice)
                     dA_prev[i, c, vert_start: vert_end, horiz_start: horiz_end] += mask * output_grad[i, c, h, w]
+
+    return dA_prev
+
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def max_pool_backward(np.float64_t[:, :, :, :] output_grad, np.float64_t[:, :, :, :] input_data,
+                  int filter_height=2, int filter_width=2, int stride_height=2,
+                  int stride_width=2):
+
+    batch_size = output_grad.shape[0]
+    channels = output_grad.shape[1]
+    height = output_grad.shape[2]
+    width = output_grad.shape[3]
+
+    # Initialize dA_prev with zeros (≈1 line)
 
 
     # Making sure your output shape is correct
     #assert(dA_prev.shape == input_data.shape)
-
-    return dA_prev
+    return innter_xxx(output_grad, input_data, batch_size, channels,height, width,
+                      filter_height, filter_width, stride_height, stride_width)
