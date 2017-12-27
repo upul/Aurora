@@ -207,7 +207,7 @@ def test_relu():
 def test_cross_entropy():
     x2_pred = ad.Variable(name='x2_pred')
     x2_actu = ad.Variable(name='x2_actu')
-    y = au.nn.cross_entropy_with_logits(x2_pred, x2_actu)
+    y = au.nn.softmax_cross_entropy_with_logits(x2_pred, x2_actu)
 
     x2_pred_grad, x2_actu_grad = ad.gradients(y, [x2_pred, x2_actu])
 
@@ -275,11 +275,10 @@ def test_max_pooling():
                                                feed_dict={x2: x2_val},
                                                wrt=x2,
                                                h=1e-5)
-
     assert isinstance(y, ad.Node)
     # TODO: (upul) looks like a bug in my eval_numerical_grad implementation
     #       Hence I'm using one decimal points
-    npt.assert_array_almost_equal(grad_x2_val, numerical_grad_x2, decimal=1)
+    npt.assert_array_almost_equal(grad_x2_val, numerical_grad_x2, decimal=2)
 
 
 def test_conv2d():

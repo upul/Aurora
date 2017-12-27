@@ -1,13 +1,13 @@
 """Trains a simple convnet on the MNIST dataset.
 =====================================================================
-Numpy:   Gets 98.01 % test accuracy after 5000 iterations with
+Numpy:   Gets 99.00 % test accuracy after 3000 iterations with
          64 batch size.
 
-         Running Time: 4131.76 seconds on Intel(R) Core(TM) i7-7700K
+         Running Time: 1197.57 seconds on Intel(R) Core(TM) i7-7700K
          CPU @ 4.20GHz 8 Cores.
 
 
-GPU:    Will be added later
+GPU:    Coming soon
 """
 
 import argparse
@@ -52,7 +52,7 @@ def build_network(image, y, batch_size=32):
     b4 = ad.Parameter(name='b4', init=rand.normal(scale=0.1, size=10))
     logits = ad.matmul(activation3, W4)
     logits = logits + ad.broadcast_to(b4, logits)
-    loss = au.nn.cross_entropy_with_logits(logits, y)
+    loss = au.nn.softmax_cross_entropy_with_logits(logits, y)
 
     return loss, W1, b1, W2, b2, W3, b3, W4, b4, logits
 
@@ -111,14 +111,17 @@ if __name__ == '__main__':
 
     loss, W1, b1, W2, b2, W3, b3, W4, b4, logits = build_network(images, labels, batch_size=64)
     opt_params = [W1, b1, W2, b2, W3, b3, W4, b4]
-    optimizer = au.optim.Adam(loss, params=opt_params, lr=1e-4, use_gpu=use_gpu)
+    optimizer = au.optim.Adam(loss, params=opt_params, lr=1e-3, use_gpu=use_gpu)
 
+    cumulative_loss = []
     for i in range(n_iter):
         X_batch, y_batch = next(batch_generator)
         loss_now = optimizer.step(feed_dict={images: X_batch, labels: y_batch})
+        cumulative_loss.append(loss_now[0])
         if i <= 10 or (i <= 100 and i % 10 == 0) or (i <= 1000 and i % 100 == 0) or (i <= 10000 and i % 500 == 0):
-            fmt_str = 'iter: {0:>5d} cost: {1:>8.5f}'
-            print(fmt_str.format(i, loss_now[0]))
+            fmt_str = 'iter: {0:>5d} avg. cost: {1:>8.5f}'
+            print(fmt_str.format(i, sum(cumulative_loss)/len(cumulative_loss)))
+            cumulative_loss.clear()
 
     # printing validation accuracy
     val_acc = measure_accuracy(logits, data.validation(), batch_size=64, use_gpu=use_gpu)

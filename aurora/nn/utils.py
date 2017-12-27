@@ -2,8 +2,30 @@ import numpy as np
 
 
 def softmax_func(x):
+    """
+    Numerically stable softmax function. For more details
+    about numerically calculations please refer:
+    http://www.deeplearningbook.org/slides/04_numerical.pdf
+    :param x:
+    :return:
+    """
     stable_values = x - np.max(x, axis=1, keepdims=True)
     return np.exp(stable_values) / np.sum(np.exp(stable_values), axis=1, keepdims=True)
+
+
+def log_sum_exp(x):
+    """
+    log_sum_exp is a very useful function in machine learning.
+    It can be seen in many places including cross-entropy error.
+    However, the naive implementation is numerically unstable.
+    Therefore, we use the following implementation. For more details
+    please refer: http://www.deeplearningbook.org/slides/04_numerical.pdf
+    :param x:
+    :return:
+    """
+    mx = np.max(x, axis=1, keepdims=True)
+    safe = x - mx
+    return mx + np.log(np.sum(np.exp(safe), axis=1, keepdims=True))
 
 
 # TODO: (upul) replace im2col and col2im with high-performance Cython implementations.

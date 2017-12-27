@@ -40,7 +40,7 @@ def build_graph(X, y, input_size, hid_1_size, hid_2_size, output_size):
 
     z3 = ad.matmul(activation_2, W3)
     hidden_3 = z3 + ad.broadcast_to(b3, z3)
-    loss = au.nn.cross_entropy_with_logits(hidden_3, y)
+    loss = au.nn.softmax_cross_entropy_with_logits(hidden_3, y)
     return loss, W1, b1, W2, b2, W3, b3, hidden_3
 
 

@@ -1,6 +1,7 @@
 import numpy as np
 from aurora.autodiff.autodiff import Op, zeros_like
 from .utils import softmax_func
+from .utils import log_sum_exp
 from .activations import softmax
 from config import sys_configs
 
@@ -18,9 +19,14 @@ class CrossEntropyOp(Op):
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
         if use_numpy:
-            pred = softmax_func(input_vals[0])
+            logits = input_vals[0]
             actual = input_vals[1]
-            output_val[:] = np.mean(-np.sum(actual * np.log(pred), axis=1), keepdims=True)
+            safe_log_softmax = logits - log_sum_exp(logits)
+            output_val[:] = np.mean(-np.sum(actual * safe_log_softmax, axis=1), keepdims=True)
+
+            # pred = softmax_func(input_vals[0])
+            # actual = input_vals[1]
+            # output_val[:] = np.mean(-np.sum(actual * np.log(pred), axis=1), keepdims=True)
         else:
             gpu_op.softmax_cross_entropy(input_vals[0], input_vals[1], output_val)
 
@@ -36,6 +42,7 @@ class CrossEntropyOp(Op):
 
 # TODO (upul) MSE
 # TODO (upul) RMSE
+# TODO (upul) sigmoid_corss_entropy_with_logits
 
 # Global singleton operations
-cross_entropy_with_logits = CrossEntropyOp()
+softmax_cross_entropy_with_logits = CrossEntropyOp()

@@ -112,6 +112,52 @@ cdef innter_xxx(np.float64_t[:, :, :, :] output_grad, np.float64_t[:, :, :, :] i
     return dA_prev
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef innter_improved(np.float64_t[:, :, :, :] output_grad, np.float64_t[:, :, :, :] input_data,
+              int batch_size, int channels, int height, int width,
+              int filter_height, int filter_width, int stride_height, int stride_width):
+
+    dA_prev = np.zeros_like(input_data)
+
+    cdef np.float64_t[:, :, :]  a_prev
+    cdef int h, w, c, vert_start, vert_end, horiz_start, horiz_end
+
+    cdef int inner_i, inner_j
+    cdef int max_i, max_j
+    cdef float max_value
+    cdef float cct
+
+    for i in range(batch_size):                       # loop over the training examples
+
+        # select training example from A_prev (≈1 line)
+        a_prev = input_data[i, :, :, :]
+
+        for h in range(height):                   # loop on the vertical axis
+            for w in range(width):               # loop on the horizontal axis
+                for c in range(channels):           # loop over the channels (depth)
+
+                    # Find the corners of the current "slice" (≈4 lines)
+                    vert_start = h*stride_height
+                    vert_end = h*stride_height + filter_height
+                    horiz_start = w*stride_width
+                    horiz_end = w*stride_width + filter_width
+
+                    # Compute the backward propagation in both modes.
+                    max_value = -1.0e-10
+                    for inner_i in range(vert_start, vert_end):
+                        for inner_j in range(horiz_start, horiz_end):
+                            cct = a_prev[c, inner_i, inner_j]
+                            #print('cct: {}, max: {}'.format(cct, max_value))
+                            if cct > max_value:
+                                max_value = cct
+                                max_i = inner_i
+                                max_j = inner_j
+                                #print(max_i, max_j)
+                                #print()
+
+                    dA_prev[i, c, max_i, max_j] = dA_prev[i, c, max_i, max_j] + output_grad[i, c, h, w]
+    return dA_prev
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -129,5 +175,5 @@ def max_pool_backward(np.float64_t[:, :, :, :] output_grad, np.float64_t[:, :, :
 
     # Making sure your output shape is correct
     #assert(dA_prev.shape == input_data.shape)
-    return innter_xxx(output_grad, input_data, batch_size, channels,height, width,
+    return innter_improved(output_grad, input_data, batch_size, channels,height, width,
                       filter_height, filter_width, stride_height, stride_width)

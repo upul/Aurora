@@ -11,7 +11,7 @@ def build_network(X, y, K):
 
     z = ad.matmul(X, W)
     logit = z + ad.broadcast_to(b, z)
-    loss = au.nn.cross_entropy_with_logits(logit, y)
+    loss = au.nn.softmax_cross_entropy_with_logits(logit, y)
     return loss, W, b, logit
 
 
