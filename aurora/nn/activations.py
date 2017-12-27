@@ -61,9 +61,23 @@ class SigmoidOp(Op):
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
+        """
+        This function calculates the sigmoid of the input_vals[0].
+        The naive implementation (1/(1+ exp(-x)) is not stable. Hence
+        we are using:
+        tanh(x) = (exp(x) - exp(-x))/(exp(x) + exp(-x))
+                = 2*sigmoid(2*x) - 1
+        hence:
+        sigmoid(x) = 0.5 + 0.5*tanh(0.5*x)
+        :param node:
+        :param input_vals:
+        :param output_val:
+        :param use_numpy:
+        :return:
+        """
         assert len(input_vals) == 1
         if use_numpy:
-            output_val[:] = 1 / (1 + np.exp(-1 * input_vals[0]))
+            output_val[:] = 0.5 + 0.5*np.tanh(0.5*input_vals[0])
         else:
             raise NotImplementedError('GPU version not yet implemented')
 

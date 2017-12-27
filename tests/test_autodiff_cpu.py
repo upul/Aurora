@@ -254,6 +254,12 @@ def test_sigmoid_activation():
     npt.assert_array_almost_equal(np.array([0.000, 0.500, 1.0]), y_val)
     npt.assert_array_almost_equal(np.array([0, 0.25, 0]), grad_x2_val)
 
+    # testing with extreme values for numerical stability.
+    x2_val = np.array([-9.9e10, 9.9e10]).astype(np.float32)
+    y_val, grad_x2_val = executor.run(feed_shapes={x2: x2_val})
+    npt.assert_array_almost_equal(np.array([0.0, 1.0]), y_val)
+    npt.assert_array_almost_equal(np.array([0.0, 0.0]), grad_x2_val)
+
 
 def test_max_pooling():
     x2 = ad.Variable(name='x2')
