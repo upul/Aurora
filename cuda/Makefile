@@ -9,7 +9,7 @@ OBJS := $(CC_OBJS) $(CUDA_OBJS)
 CC = g++
 WARNINGS = -Wall -Wfatal-errors -Wno-unused -Wno-unused-result
 CC_FLAGS = -std=c++11 -fPIC $(WARNINGS) -I$(CUDA_DIR)/include
-LD_FLAGS = -L$(CUDA_DIR)/lib64 -lcuda -lcudart -lcublas
+LD_FLAGS = -L$(CUDA_DIR)/lib64 -lcuda -lcudart -lcublas -lcudnn
 
 NVCC = nvcc
 NVCC_FLAGS = -std=c++11 --compiler-options '-fPIC'

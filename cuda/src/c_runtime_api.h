@@ -193,6 +193,11 @@ DLSYS_EXTERN_C {
                                DLArrayHandle output);
 
   int DLGpuMatrixElementwiseSqrt(const DLArrayHandle input_a, DLArrayHandle output);
+
+  /*
+  * CUDNN....
+  */
+  int cudnnReLUForward(const DLArrayHandle input, DLArrayHandle output);
 } // DLSYS_EXTERN_C
 
 #endif // DLSYS_RUNTIME_C_RUNTIME_API_H_

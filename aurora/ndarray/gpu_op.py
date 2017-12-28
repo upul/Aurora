@@ -117,3 +117,9 @@ def softmax_cross_entropy(in_arr_a, in_arr_b, out_arr):
     assert isinstance(out_arr, _nd.NDArray)
     _LIB.DLGpuSoftmaxCrossEntropy(
         in_arr_a.handle, in_arr_b.handle, out_arr.handle)
+
+
+def cudnn_relu_forward(in_array, out_array):
+    assert isinstance(in_array, _nd.NDArray)
+    assert isinstance(out_array, _nd.NDArray)
+    _LIB.cudnnReLUForward(in_array.handle, out_array.handle)
