@@ -42,6 +42,7 @@ def matrix_elementwise_subtract(matA, matB, matC):
     assert isinstance(matC, _nd.NDArray)
     _LIB.DLGpuMatrixElementwiseSubtract(matA.handle, matB.handle, matC.handle)
 
+
 def matrix_elementwise_subtract_by_const(in_mat, val, out_mat):
     assert isinstance(in_mat, _nd.NDArray)
     assert isinstance(out_mat, _nd.NDArray)
@@ -77,6 +78,7 @@ def matrix_elementwise_div_by_const(in_mat, val, out_mat):
     assert isinstance(out_mat, _nd.NDArray)
     _LIB.DLGpuMatrixElementwiseDivByConst(
         in_mat.handle, ctypes.c_float(val), out_mat.handle)
+
 
 def matrix_elementwise_sqrt(in_mat, out_mat):
     assert isinstance(in_mat, _nd.NDArray)
@@ -123,3 +125,39 @@ def cudnn_relu_forward(in_array, out_array):
     assert isinstance(in_array, _nd.NDArray)
     assert isinstance(out_array, _nd.NDArray)
     _LIB.cudnnReLUForward(in_array.handle, out_array.handle)
+
+
+def cudnn_conv2d_forward(input, filter, bias, stride_height, stride_width, padding_height, padding_width, output):
+    assert isinstance(input, _nd.NDArray)
+    assert isinstance(filter, _nd.NDArray)
+    assert isinstance(bias, _nd.NDArray)
+    assert isinstance(stride_height, int)
+    assert isinstance(stride_width, int)
+    assert isinstance(padding_height, int)
+    assert isinstance(padding_width, int)
+    assert isinstance(output, _nd.NDArray)
+    _LIB.cudnnConv2DForward(input.handle, filter.handle,
+                            bias.handle,
+                            stride_height, stride_width,
+                            padding_height, padding_width,
+                            output.handle)
+
+
+def cudnn_pool_forward(input,
+                       pooling_height, pooling_width,
+                       stride_height, stride_width,
+                       mode,
+                       output):
+    assert isinstance(input, _nd.NDArray)
+    assert isinstance(stride_height, int)
+    assert isinstance(stride_width, int)
+    assert isinstance(pooling_height, int)
+    assert isinstance(pooling_width, int)
+    assert isinstance(mode, int)
+    assert isinstance(output, _nd.NDArray)
+    _LIB.cudnnMaxPoolingForward(input.handle,
+                             stride_height, stride_width,
+                             pooling_height, pooling_width,
+                             mode,
+                             output.handle)
+

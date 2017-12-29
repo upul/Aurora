@@ -198,6 +198,23 @@ DLSYS_EXTERN_C {
   * CUDNN....
   */
   int cudnnReLUForward(const DLArrayHandle input, DLArrayHandle output);
+
+  int cudnnConv2DForward(const DLArrayHandle input,
+                       const DLArrayHandle filter,
+                       const DLArrayHandle bias,
+                       const int stride_height,
+                       const int stride_width,
+                       const int padding_height,
+                       const int padding_width,
+                       DLArrayHandle output);
+
+  int cudnnMaxPoolingForward(const DLArrayHandle input,
+                        const int pooling_height,
+                        const int pooling_width,
+                        const int stride_height,
+                        const int stride_width,
+                        const int mode,
+                        DLArrayHandle output);
 } // DLSYS_EXTERN_C
 
 #endif // DLSYS_RUNTIME_C_RUNTIME_API_H_
