@@ -4,24 +4,17 @@ cimport numpy as np
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef im2col_inner(np.float64_t[:, :, :, :] x_padded, np.float64_t[:, :] out, int h_new, int w_new, int C, int M,
-                 int filter_height, int filter_width, int stride_height, int stride_width):
+cdef im2col_inner(np.float64_t[:, :, :, :] x_padded,
+                  np.float64_t[:, :] out,
+                  int h_new, int w_new, int C, int M,
+                  int filter_height, int filter_width,
+                  int stride_height, int stride_width):
+
     cdef int itr = 0
-    
-    cdef int start_i
-    cdef int end_i
-    cdef int start_j
-    cdef int end_j
-    
-    cdef int i
-    cdef int j
-    cdef int m 
-    
-    cdef int k
-    cdef int c
-    cdef int p_h
-    cdef int p_w
-                
+    cdef int start_i, end_i, start_j, end_j
+    cdef int i, j, m
+    cdef int k, c, p_h, p_w
+
     for i in range(h_new):
         for j in range(w_new):
             for m in range(M):
@@ -39,11 +32,14 @@ cdef im2col_inner(np.float64_t[:, :, :, :] x_padded, np.float64_t[:, :] out, int
                 itr += 1
 
 
-
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef col2img_inner(np.float64_t[:, :] cols, np.float64_t[:, :, :, :] x_padded, int filter_height, int filter_width,
-                   int N, int C, int H, int W, int H_padded, int W_padded, int padding_height, int padding_width,
+cdef col2img_inner(np.float64_t[:, :] cols,
+                   np.float64_t[:, :, :, :] x_padded,
+                   int filter_height, int filter_width,
+                   int N, int C, int H, int W,
+                   int H_padded, int W_padded,
+                   int padding_height, int padding_width,
                    int stride_height, int stride_width):
     cdef int idx = 0
     cdef int i, j, m, c, sh, sw
@@ -74,6 +70,7 @@ cdef col2img_inner(np.float64_t[:, :] cols, np.float64_t[:, :, :, :] x_padded, i
     else:
         return x_padded
 
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def im2col(np.float64_t[:, :, :, :] image,
@@ -81,7 +78,7 @@ def im2col(np.float64_t[:, :, :, :] image,
            int padding_height=0, int padding_width=0,
            int stride_height=1, int stride_width=1):
 
-    cdef int imgs_per_batch = image.shape[0]
+    cdef int images_per_batch = image.shape[0]
     cdef int n_channels = image.shape[1]
     cdef int img_h = image.shape[2]
     cdef int img_w = image.shape[3]
@@ -96,10 +93,11 @@ def im2col(np.float64_t[:, :, :, :] image,
     cdef int new_w = int((img_w - filter_width + 2 * padding_width) / stride_width + 1)
 
     cdef int col_height = filter_width * filter_height * n_channels
-    cdef int col_width = imgs_per_batch * new_h * new_w
+    cdef int col_width = images_per_batch * new_h * new_w
 
     cdef np.float64_t[:, :] result = np.zeros((col_height, col_width))
-    im2col_inner(x_padded, result, new_h, new_w, n_channels, imgs_per_batch,
+
+    im2col_inner(x_padded, result, new_h, new_w, n_channels, images_per_batch,
                  filter_height, filter_width, stride_height, stride_width)
 
     return result

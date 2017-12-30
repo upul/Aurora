@@ -259,11 +259,11 @@ int cudnnMaxPoolingForward(const DLArrayHandle input,
                                    output_descriptor,
                                    output_data));
 
-    //cudnnDestroyTensorDescriptor(input_descriptor);
-    //cudnnDestroyTensorDescriptor(output_descriptor);
-    //cudnnDestroyPoolingDescriptor(pooling_descriptor);
+    cudnnDestroyTensorDescriptor(input_descriptor);
+    cudnnDestroyTensorDescriptor(output_descriptor);
+    cudnnDestroyPoolingDescriptor(pooling_descriptor);
 
-    //cudnnDestroy(cudnn);
+    cudnnDestroy(cudnn);
     return 0;
 }
 

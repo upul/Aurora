@@ -1,5 +1,5 @@
 from aurora.autodiff.autodiff import Op
-from .fast_pooling import max_pool_forward, max_pool_backward
+from aurora.nn.pyx.fast_pooling import max_pool_forward, max_pool_backward
 
 
 class MaxPoolOp(Op):

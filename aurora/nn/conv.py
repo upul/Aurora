@@ -1,5 +1,5 @@
 from aurora.autodiff.autodiff import Op
-from aurora.nn.im2col import im2col, col2im
+from aurora.nn.pyx.im2col import im2col, col2im
 
 
 # TODO: (upul) The numpy version of the Conv2dOp, X_col is calculated twice.
