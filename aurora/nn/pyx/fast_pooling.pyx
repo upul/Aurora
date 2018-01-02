@@ -57,7 +57,34 @@ def max_pool_forward(np.float64_t[:, :, :, :] data,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef max_pool_backward_inner(np.float64_t[:, :, :, :] output_grad,
+def max_pool_backward(np.float64_t[:, :, :, :] output_grad,
+                      np.float64_t[:, :, :, :] input_data,
+                      int filter_height=2, int filter_width=2,
+                      int stride_height=2, int stride_width=2):
+    """
+
+    :param output_grad:
+    :param input_data:
+    :param filter_height:
+    :param filter_width:
+    :param stride_height:
+    :param stride_width:
+    :return:
+    """
+    batch_size = output_grad.shape[0]
+    channels = output_grad.shape[1]
+    height = output_grad.shape[2]
+    width = output_grad.shape[3]
+
+    return _max_pool_backward_inner(output_grad, input_data,
+                                   batch_size, channels,height,
+                                   width, filter_height,
+                                   filter_width, stride_height,
+                                   stride_width)
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef _max_pool_backward_inner(np.float64_t[:, :, :, :] output_grad,
                              np.float64_t[:, :, :, :] input_data,
                              int batch_size, int
                              channels,
@@ -116,30 +143,3 @@ cdef max_pool_backward_inner(np.float64_t[:, :, :, :] output_grad,
                                 max_j = slice_width
                     grad_input[i, c, max_i, max_j] += output_grad[i, c, h, w]
     return grad_input
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def max_pool_backward(np.float64_t[:, :, :, :] output_grad,
-                      np.float64_t[:, :, :, :] input_data,
-                      int filter_height=2, int filter_width=2,
-                      int stride_height=2, int stride_width=2):
-    """
-
-    :param output_grad:
-    :param input_data:
-    :param filter_height:
-    :param filter_width:
-    :param stride_height:
-    :param stride_width:
-    :return:
-    """
-    batch_size = output_grad.shape[0]
-    channels = output_grad.shape[1]
-    height = output_grad.shape[2]
-    width = output_grad.shape[3]
-
-    return max_pool_backward_inner(output_grad, input_data,
-                                   batch_size, channels,height,
-                                   width, filter_height,
-                                   filter_width, stride_height,
-                                   stride_width)

@@ -5,10 +5,10 @@ from Cython.Build import cythonize
 import numpy
 
 extensions = [
-    Extension('aurora.nn.im2col', ['aurora/nn/im2col.pyx'],
+    Extension('aurora.nn.pyx.im2col', ['aurora/nn/pyx/im2col.pyx'],
               include_dirs=[numpy.get_include()]
               ),
-    Extension('aurora.nn.fast_pooling', ['aurora/nn/fast_pooling.pyx'],
+    Extension('aurora.nn.pyx.fast_pooling', ['aurora/nn/pyx/fast_pooling.pyx'],
               include_dirs=[numpy.get_include()]
               ),
 ]
