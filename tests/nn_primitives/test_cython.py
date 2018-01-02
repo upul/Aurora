@@ -2,9 +2,11 @@ import numpy as np
 import numpy.testing as npt
 from aurora.nn.pyx.fast_pooling import max_pool_forward
 from aurora.nn.pyx.fast_pooling import max_pool_backward
+from tests.utils.gradient_check import gradient_check_numpy_expr
 
 
-# Testing Pooling layers
+# Testing Max Pooling Layers
+
 def test_max_pooling_forward():
     data = np.array([[[[0.12, -1.23, 0.01, 2.45],
                        [5.00, -10.01, 1.09, 4.66],
@@ -55,7 +57,7 @@ def test_max_pooling_backward():
                        [4.56, 6.78, 3.45, 3.33],
                        [0.01, 1.00, 3.56, 3.39]]]])
     output_grad = np.array([[[[1.0, 1.0],
-                             [1.0, 1.0]]]])
+                              [1.0, 1.0]]]])
     # Test Case: 1
     # filter = (2, 2) stride = (2, 2)
     expected = np.array([[[[0.0, 0.0, 0.0, 0.0],
@@ -66,6 +68,10 @@ def test_max_pooling_backward():
                                filter_height=2, filter_width=2,
                                stride_height=2, stride_width=2)
     npt.assert_array_almost_equal(result, expected)
+
+    # calculate numerical gradient
+    numerical = gradient_check_numpy_expr(lambda d: max_pool_forward(d, 2, 2, 2, 2), data, output_grad)
+    npt.assert_array_almost_equal(numerical, expected, decimal=3)
 
     # Test Case: 2
     # filter = (2, 2) stride = (2, 2)
@@ -81,7 +87,30 @@ def test_max_pooling_backward():
                                stride_height=2, stride_width=2)
     npt.assert_array_almost_equal(result, expected)
 
+    # calculate numerical gradient
+    numerical = gradient_check_numpy_expr(lambda d: max_pool_forward(d, 2, 2, 2, 2), data, output_grad)
+    npt.assert_array_almost_equal(numerical, expected, decimal=2)
+
     # Test Case: 3
     # filter = (2, 2) stride = (1, 1)
-    #output_grad = np.array([[[[1.0, 1.0],
-                              #[1.0, 1.0]]]])
+    output_grad = np.array([[[[1.0, 1.0, 1.0],
+                              [1.0, 1.0, 1.0],
+                              [1.0, 1.0, 1.0]]]])
+    result = max_pool_backward(output_grad, data,
+                               filter_height=2, filter_width=2,
+                               stride_height=1, stride_width=1)
+    numerical = gradient_check_numpy_expr(lambda x: max_pool_forward(x, 2, 2, 1, 1), data, output_grad)
+    npt.assert_array_almost_equal(numerical, result, decimal=2)
+
+    # Test Case: 4
+    # filter = (2, 2) stride = (2, 2)
+    # input shape = (2, 2, 6, 6)
+    data = np.random.normal(scale=0.01, size=(2, 2, 6, 6))
+    output_grad = np.ones((2, 2, 3, 3))
+    result = max_pool_backward(output_grad, data,
+                               filter_height=2, filter_width=2,
+                               stride_height=2, stride_width=2)
+    numerical = gradient_check_numpy_expr(lambda d: max_pool_forward(d, 2, 2, 2, 2), data, output_grad)
+    npt.assert_array_almost_equal(numerical, result, decimal=4)
+
+# Testing Image to Column operations

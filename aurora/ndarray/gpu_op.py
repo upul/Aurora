@@ -156,8 +156,7 @@ def cudnn_pool_forward(input,
     assert isinstance(mode, int)
     assert isinstance(output, _nd.NDArray)
     _LIB.cudnnMaxPoolingForward(input.handle,
-                             stride_height, stride_width,
-                             pooling_height, pooling_width,
-                             mode,
-                             output.handle)
-
+                                stride_height, stride_width,
+                                pooling_height, pooling_width,
+                                mode,
+                                output.handle)
