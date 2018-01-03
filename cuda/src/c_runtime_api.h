@@ -215,6 +215,14 @@ DLSYS_EXTERN_C {
                         const int stride_width,
                         const int mode,
                         DLArrayHandle output);
+
+  int cudnnConv2DBackwardFilter(const DLArrayHandle input,
+                              const DLArrayHandle output_grads,
+                              const int stride_height,
+                              const int stride_width,
+                              const int padding_height,
+                              const int padding_width,
+                              DLArrayHandle filter_grad);
 } // DLSYS_EXTERN_C
 
 #endif // DLSYS_RUNTIME_C_RUNTIME_API_H_

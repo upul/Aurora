@@ -160,3 +160,24 @@ def cudnn_pool_forward(input,
                                 pooling_height, pooling_width,
                                 mode,
                                 output.handle)
+
+
+def cudnn_conv2d_backward_filter(input,
+                                 output_grads,
+                                 stride_height,
+                                 stride_width,
+                                 padding_height,
+                                 padding_width,
+                                 filter_grad):
+    assert isinstance(input, _nd.NDArray)
+    assert isinstance(output_grads, _nd.NDArray)
+    assert isinstance(stride_height, int)
+    assert isinstance(stride_width, int)
+    assert isinstance(padding_height, int)
+    assert isinstance(padding_width, int)
+    assert isinstance(filter_grad, _nd.NDArray)
+    _LIB.cudnnConv2DBackwardFilter(input.handle,
+                                   output_grads.handle,
+                                   stride_height, stride_width,
+                                   padding_height, padding_width,
+                                   filter_grad.handle)
