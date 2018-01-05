@@ -115,8 +115,13 @@ int cudnnConv2DForward(const DLArrayHandle input,
     const int filter_height = filter->shape[2];
     const int filter_width = filter->shape[3];
 
+    const int bias_dim = bias->ndim;
+    assert(bias_dim == 1);
+    assert(bias->shape[0] == num_filters);
+
     const float *input_data = (const float *) input->data;
     const float *filter_date = (const float *) filter->data;
+    const float *bias_data = (const float *) bias->data;
 	float *output_data = (float *) output->data;
 
     cudnnHandle_t cudnn;
@@ -195,6 +200,25 @@ int cudnnConv2DForward(const DLArrayHandle input,
                                      output_descriptor,
                                      output_data));
 
+    // adding bias tensor
+    cudnnTensorDescriptor_t bias_descriptor;
+    checkCUDNN(cudnnCreateTensorDescriptor(&bias_descriptor));
+    //setTensorDescriptor(bias_descriptor, bias->ndim, bias->shape);
+    checkCUDNN(cudnnSetTensor4dDescriptor(bias_descriptor,
+                                          CUDNN_TENSOR_NCHW,
+                                          CUDNN_DATA_FLOAT,
+                                          1,
+                                          num_filters,
+                                          1,
+                                          1));
+    checkCUDNN(cudnnAddTensor(cudnn,
+                              &alpha,
+                              bias_descriptor,
+                              bias_data,
+                              &alpha,
+                              output_descriptor,
+                              output_data));
+
     cudaFree(d_workspace);
 
     cudnnDestroyTensorDescriptor(input_descriptor);
@@ -206,6 +230,53 @@ int cudnnConv2DForward(const DLArrayHandle input,
 
     return 0;
 }
+
+int cudnnConv2DBackwardBias(const DLArrayHandle output_grads,
+                            DLArrayHandle bias_grads) {
+
+    const float *output_grads_data = (const float *) output_grads->data;
+    float* bias_grads_data = (float *) bias_grads->data;
+
+    const int bias_grads_dim = bias_grads->ndim;
+    assert(bias_grads_dim == 1);
+    const int num_filters = bias_grads->shape[0];
+
+    cudnnHandle_t cudnn;
+    cudnnCreate(&cudnn);
+
+     // creating output_grads descriptor
+    cudnnTensorDescriptor_t output_grads_descriptor;
+    checkCUDNN(cudnnCreateTensorDescriptor(&output_grads_descriptor));
+    setTensorDescriptor(output_grads_descriptor, output_grads->ndim, output_grads->shape);
+
+    // bias descriptor
+    cudnnTensorDescriptor_t bias_descriptor;
+    checkCUDNN(cudnnCreateTensorDescriptor(&bias_descriptor));
+    checkCUDNN(cudnnSetTensor4dDescriptor(bias_descriptor,
+                                          CUDNN_TENSOR_NCHW,
+                                          CUDNN_DATA_FLOAT,
+                                          1,
+                                          num_filters,
+                                          1,
+                                          1));
+
+    const float alpha = 1.0f, beta = 0.0f;
+    checkCUDNN(cudnnConvolutionBackwardBias(cudnn,
+                                            &alpha,
+                                            output_grads_descriptor,
+                                            output_grads_data,
+                                            &beta,
+                                            bias_descriptor,
+                                            bias_grads_data
+                                            ));
+
+    cudnnDestroyTensorDescriptor(bias_descriptor);
+    cudnnDestroyTensorDescriptor(output_grads_descriptor);
+    cudnnDestroy(cudnn);
+
+    return 0;
+}
+
 
 int cudnnConv2DBackwardData(const DLArrayHandle filter,
                             const DLArrayHandle output_grads,
@@ -304,6 +375,8 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
                                                             backward_data_algo,
                                                             &workspace_bytes));
 
+    //std::cout << "workspace size: " << workspace_bytes << std::endl;
+
     void* d_workspace{nullptr};
     cudaMalloc(&d_workspace, workspace_bytes);
 
@@ -332,6 +405,7 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
 
     cudnnDestroy(cudnn);
 
+    //std::cout << "leaveing cudnnConv2DBackwardData" << std::endl;
     return 0;
 
 }
@@ -457,7 +531,7 @@ int cudnnMaxPoolingForward(const DLArrayHandle input,
                         const int pooling_width,
                         const int stride_height,
                         const int stride_width,
-                        const int mode,
+                        const char* mode,
                         DLArrayHandle output){
 
     const int input_dim = input->ndim;
@@ -510,6 +584,8 @@ int cudnnMaxPoolingForward(const DLArrayHandle input,
     cudnnDestroy(cudnn);
     return 0;
 }
+
+
 
 
 

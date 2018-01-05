@@ -213,7 +213,7 @@ DLSYS_EXTERN_C {
                         const int pooling_width,
                         const int stride_height,
                         const int stride_width,
-                        const int mode,
+                        const char* mode,
                         DLArrayHandle output);
 
   int cudnnConv2DBackwardFilter(const DLArrayHandle input,
@@ -223,6 +223,17 @@ DLSYS_EXTERN_C {
                               const int padding_height,
                               const int padding_width,
                               DLArrayHandle filter_grad);
+
+  int cudnnConv2DBackwardData(const DLArrayHandle filter,
+                            const DLArrayHandle output_grads,
+                            const int stride_height,
+                            const int stride_width,
+                            const int padding_height,
+                            const int padding_width,
+                            DLArrayHandle data_grad);
+
+  int cudnnConv2DBackwardBias(const DLArrayHandle output_grads,
+                            DLArrayHandle bias_grads);
 } // DLSYS_EXTERN_C
 
 #endif // DLSYS_RUNTIME_C_RUNTIME_API_H_

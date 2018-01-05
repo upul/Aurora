@@ -155,10 +155,13 @@ def cudnn_pool_forward(input,
     assert isinstance(pooling_width, int)
     assert isinstance(mode, int)
     assert isinstance(output, _nd.NDArray)
+
+    mode = mode.encode('utf-8')
+
     _LIB.cudnnMaxPoolingForward(input.handle,
                                 stride_height, stride_width,
                                 pooling_height, pooling_width,
-                                mode,
+                                ctypes.c_char_p(mode),
                                 output.handle)
 
 
@@ -181,3 +184,31 @@ def cudnn_conv2d_backward_filter(input,
                                    stride_height, stride_width,
                                    padding_height, padding_width,
                                    filter_grad.handle)
+
+
+def cudnn_conv2d_backward_data(filter,
+                               output_grad,
+                               stride_height,
+                               stride_width,
+                               padding_height,
+                               padding_width,
+                               data_grad):
+    assert isinstance(filter, _nd.NDArray)
+    assert isinstance(output_grad, _nd.NDArray)
+    assert isinstance(stride_height, int)
+    assert isinstance(stride_width, int)
+    assert isinstance(padding_height, int)
+    assert isinstance(padding_width, int)
+    assert isinstance(data_grad, _nd.NDArray)
+    _LIB.cudnnConv2DBackwardData(filter.handle,
+                                 output_grad.handle,
+                                 stride_height,
+                                 stride_width,
+                                 padding_height,
+                                 padding_width,
+                                 data_grad.handle)
+
+def cudnn_conv2d_backward_bias(output_grads, bias_grads):
+    assert isinstance(output_grads, _nd.NDArray)
+    assert isinstance(bias_grads, _nd.NDArray)
+    _LIB.cudnnConv2DBackwardBias(output_grads.handle, bias_grads.handle)
