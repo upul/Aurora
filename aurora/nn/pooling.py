@@ -8,7 +8,7 @@ class MaxPoolOp(Op):
         new_node.inputs = [input]
         new_node.filter = filter
         new_node.strides = strides
-        new_node.name = 'AveragePoolOp({})'.format(input.name)
+        new_node.name = 'MaxPoolOp({})'.format(input.name)
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
@@ -26,7 +26,7 @@ class MaxPoolOp(Op):
                                              stride_height=stride_height,
                                              stride_width=stride_width)
         else:
-            raise NotImplementedError('GPU version of AveragePoolOp not yet implemented')
+            raise NotImplementedError('GPU version of MaxPoolOp not yet implemented')
 
     def gradient(self, node, output_grads):
         return [maxPoolBack(node.inputs[0], output_grads)]

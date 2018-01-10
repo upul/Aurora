@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include <math.h>
 #include <iostream>
+#include <string>
 
 #define checkCUDNN(expression)                                  \
 {                                                               \
@@ -18,19 +19,19 @@
 }
 
 int setTensorDescriptor(cudnnTensorDescriptor_t activationDesc,
-                           const int numDim,
-                           const long shape[]){
+                        const int numDim,
+                        const long shape[]) {
     int batchSize = 0;
     int channels = 0;
-    switch(numDim){
+    switch (numDim) {
         case 2:
             batchSize = shape[0];
             channels = shape[1];
             checkCUDNN(cudnnSetTensor4dDescriptor(activationDesc,
-                                          CUDNN_TENSOR_NCHW,
-                                          CUDNN_DATA_FLOAT,
-                                          batchSize,
-                                          channels, 1, 1));
+                                                  CUDNN_TENSOR_NCHW,
+                                                  CUDNN_DATA_FLOAT,
+                                                  batchSize,
+                                                  channels, 1, 1));
             break;
 
         case 4:
@@ -39,25 +40,25 @@ int setTensorDescriptor(cudnnTensorDescriptor_t activationDesc,
             int height = shape[2];
             int width = shape[3];
             checkCUDNN(cudnnSetTensor4dDescriptor(activationDesc,
-                                          CUDNN_TENSOR_NCHW,
-                                          CUDNN_DATA_FLOAT,
-                                          batchSize,
-                                          channels,
-                                          height,
-                                          width));
+                                                  CUDNN_TENSOR_NCHW,
+                                                  CUDNN_DATA_FLOAT,
+                                                  batchSize,
+                                                  channels,
+                                                  height,
+                                                  width));
             break;
-        // TODO: handle other cases and errors
+            // TODO: handle other cases and errors
 
     }
     return 0;
 }
 
 int cudnnReLUForward(const DLArrayHandle input, DLArrayHandle output) {
-	const float *input_data = (const float *) input->data;
-	float *output_data = (float *) output->data;
+    const float *input_data = (const float *) input->data;
+    float *output_data = (float *) output->data;
 
-	assert(input->shape[0] == output->shape[0]);
-	assert(input->shape[1] == output->shape[1]);
+    assert(input->shape[0] == output->shape[0]);
+    assert(input->shape[1] == output->shape[1]);
 
     cudnnHandle_t cudnn;
     cudnnCreate(&cudnn);
@@ -65,9 +66,9 @@ int cudnnReLUForward(const DLArrayHandle input, DLArrayHandle output) {
     cudnnActivationDescriptor_t activation_descriptor;
     checkCUDNN(cudnnCreateActivationDescriptor(&activation_descriptor));
     checkCUDNN(cudnnSetActivationDescriptor(activation_descriptor,
-                                           CUDNN_ACTIVATION_RELU, // type of activation
-                                           CUDNN_PROPAGATE_NAN, // reluNanOpt
-                                           0));  //relu_coef
+                                            CUDNN_ACTIVATION_RELU, // type of activation
+                                            CUDNN_PROPAGATE_NAN, // reluNanOpt
+                                            0));  //relu_coef
 
     cudnnTensorDescriptor_t input_descriptor;
     checkCUDNN(cudnnCreateTensorDescriptor(&input_descriptor));
@@ -91,7 +92,7 @@ int cudnnReLUForward(const DLArrayHandle input, DLArrayHandle output) {
     cudnnDestroyTensorDescriptor(input_descriptor);
     cudnnDestroyTensorDescriptor(output_descriptor);
 
-	return 0;
+    return 0;
 }
 
 int cudnnConv2DForward(const DLArrayHandle input,
@@ -122,7 +123,7 @@ int cudnnConv2DForward(const DLArrayHandle input,
     const float *input_data = (const float *) input->data;
     const float *filter_date = (const float *) filter->data;
     const float *bias_data = (const float *) bias->data;
-	float *output_data = (float *) output->data;
+    float *output_data = (float *) output->data;
 
     cudnnHandle_t cudnn;
     cudnnCreate(&cudnn);
@@ -141,64 +142,64 @@ int cudnnConv2DForward(const DLArrayHandle input,
     cudnnFilterDescriptor_t filter_descriptor;
     checkCUDNN(cudnnCreateFilterDescriptor(&filter_descriptor));
     checkCUDNN(cudnnSetFilter4dDescriptor(filter_descriptor,
-                                        /*dataType=*/CUDNN_DATA_FLOAT,
-                                        /*format=*/CUDNN_TENSOR_NCHW,
-                                        /*out_channels=*/num_outputs,
-                                        /*in_channels=*/num_filters,
-                                        /*kernel_height=*/filter_height,
-                                        /*kernel_width=*/filter_width));
+            /*dataType=*/CUDNN_DATA_FLOAT,
+            /*format=*/CUDNN_TENSOR_NCHW,
+            /*out_channels=*/num_outputs,
+            /*in_channels=*/num_filters,
+            /*kernel_height=*/filter_height,
+            /*kernel_width=*/filter_width));
     // create convolution tensor
     cudnnConvolutionDescriptor_t convolution_descriptor;
     checkCUDNN(cudnnCreateConvolutionDescriptor(&convolution_descriptor));
     checkCUDNN(cudnnSetConvolution2dDescriptor(convolution_descriptor,
-                                             /*pad_height=*/padding_height,
-                                             /*pad_width=*/padding_width,
-                                             /*vertical_stride=*/stride_height,
-                                             /*horizontal_stride=*/stride_width,
-                                             /*dilation_height=*/1,
-                                             /*dilation_width=*/1,
-                                             /*mode=*/CUDNN_CROSS_CORRELATION,
-                                             /*computeType=*/CUDNN_DATA_FLOAT));
+            /*pad_height=*/padding_height,
+            /*pad_width=*/padding_width,
+            /*vertical_stride=*/stride_height,
+            /*horizontal_stride=*/stride_width,
+            /*dilation_height=*/1,
+            /*dilation_width=*/1,
+            /*mode=*/CUDNN_CROSS_CORRELATION,
+            /*computeType=*/CUDNN_DATA_FLOAT));
 
     cudnnConvolutionFwdAlgo_t convolution_algorithm;
     checkCUDNN(cudnnGetConvolutionForwardAlgorithm(cudnn,
-                                          input_descriptor,
-                                          filter_descriptor,
-                                          convolution_descriptor,
-                                          output_descriptor,
-                                          CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
-                                          /*memoryLimitInBytes=*/0,
-                                          &convolution_algorithm));
+                                                   input_descriptor,
+                                                   filter_descriptor,
+                                                   convolution_descriptor,
+                                                   output_descriptor,
+                                                   CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
+            /*memoryLimitInBytes=*/0,
+                                                   &convolution_algorithm));
 
     size_t workspace_bytes{0};
     checkCUDNN(cudnnGetConvolutionForwardWorkspaceSize(cudnn,
-                                                     input_descriptor,
-                                                     filter_descriptor,
-                                                     convolution_descriptor,
-                                                     output_descriptor,
-                                                     convolution_algorithm,
-                                                     &workspace_bytes));
+                                                       input_descriptor,
+                                                       filter_descriptor,
+                                                       convolution_descriptor,
+                                                       output_descriptor,
+                                                       convolution_algorithm,
+                                                       &workspace_bytes));
     //std::cerr << "Workspace size: " << (workspace_bytes / 1048576.0) << "MB" << std::endl;
     assert(workspace_bytes > 0);
 
-    void* d_workspace{nullptr};
+    void *d_workspace{nullptr};
     cudaMalloc(&d_workspace, workspace_bytes);
 
     const float alpha = 1.0f, beta = 0.0f;
 
     checkCUDNN(cudnnConvolutionForward(cudnn,
-                                     &alpha,
-                                     input_descriptor,
-                                     input_data,
-                                     filter_descriptor,
-                                     filter_date,
-                                     convolution_descriptor,
-                                     convolution_algorithm,
-                                     d_workspace,
-                                     workspace_bytes,
-                                     &beta,
-                                     output_descriptor,
-                                     output_data));
+                                       &alpha,
+                                       input_descriptor,
+                                       input_data,
+                                       filter_descriptor,
+                                       filter_date,
+                                       convolution_descriptor,
+                                       convolution_algorithm,
+                                       d_workspace,
+                                       workspace_bytes,
+                                       &beta,
+                                       output_descriptor,
+                                       output_data));
 
     // adding bias tensor
     cudnnTensorDescriptor_t bias_descriptor;
@@ -235,7 +236,7 @@ int cudnnConv2DBackwardBias(const DLArrayHandle output_grads,
                             DLArrayHandle bias_grads) {
 
     const float *output_grads_data = (const float *) output_grads->data;
-    float* bias_grads_data = (float *) bias_grads->data;
+    float *bias_grads_data = (float *) bias_grads->data;
 
     const int bias_grads_dim = bias_grads->ndim;
     assert(bias_grads_dim == 1);
@@ -244,7 +245,7 @@ int cudnnConv2DBackwardBias(const DLArrayHandle output_grads,
     cudnnHandle_t cudnn;
     cudnnCreate(&cudnn);
 
-     // creating output_grads descriptor
+    // creating output_grads descriptor
     cudnnTensorDescriptor_t output_grads_descriptor;
     checkCUDNN(cudnnCreateTensorDescriptor(&output_grads_descriptor));
     setTensorDescriptor(output_grads_descriptor, output_grads->ndim, output_grads->shape);
@@ -268,7 +269,7 @@ int cudnnConv2DBackwardBias(const DLArrayHandle output_grads,
                                             &beta,
                                             bias_descriptor,
                                             bias_grads_data
-                                            ));
+    ));
 
     cudnnDestroyTensorDescriptor(bias_descriptor);
     cudnnDestroyTensorDescriptor(output_grads_descriptor);
@@ -301,14 +302,14 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
 
     //const float *input_data = (const float *) input->data;
     const float *filter_date = (const float *) filter->data;
-	const float *output_grads_data = (const float *) output_grads->data;
-	float* data_grad_data = (float *) data_grad->data;
+    const float *output_grads_data = (const float *) output_grads->data;
+    float *data_grad_data = (float *) data_grad->data;
 
 
     cudnnHandle_t cudnn;
     cudnnCreate(&cudnn);
 
-     // creating input descriptor
+    // creating input descriptor
     //cudnnTensorDescriptor_t input_descriptor;
     //checkCUDNN(cudnnCreateTensorDescriptor(&input_descriptor));
     //setTensorDescriptor(input_descriptor, input->ndim, input->shape);
@@ -322,24 +323,24 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
     cudnnConvolutionDescriptor_t convolution_descriptor;
     checkCUDNN(cudnnCreateConvolutionDescriptor(&convolution_descriptor));
     checkCUDNN(cudnnSetConvolution2dDescriptor(convolution_descriptor,
-                                             /*pad_height=*/padding_height,
-                                             /*pad_width=*/padding_width,
-                                             /*vertical_stride=*/stride_height,
-                                             /*horizontal_stride=*/stride_width,
-                                             /*dilation_height=*/1,
-                                             /*dilation_width=*/1,
-                                             /*mode=*/CUDNN_CROSS_CORRELATION,
-                                             /*computeType=*/CUDNN_DATA_FLOAT));
+            /*pad_height=*/padding_height,
+            /*pad_width=*/padding_width,
+            /*vertical_stride=*/stride_height,
+            /*horizontal_stride=*/stride_width,
+            /*dilation_height=*/1,
+            /*dilation_width=*/1,
+            /*mode=*/CUDNN_CROSS_CORRELATION,
+            /*computeType=*/CUDNN_DATA_FLOAT));
     // create filter tensors
     cudnnFilterDescriptor_t filter_descriptor;
     checkCUDNN(cudnnCreateFilterDescriptor(&filter_descriptor));
     checkCUDNN(cudnnSetFilter4dDescriptor(filter_descriptor,
-                                        /*dataType=*/CUDNN_DATA_FLOAT,
-                                        /*format=*/CUDNN_TENSOR_NCHW,
-                                        /*out_channels=*/num_outputs,
-                                        /*in_channels=*/num_filters,
-                                        /*kernel_height=*/filter_height,
-                                        /*kernel_width=*/filter_width));
+            /*dataType=*/CUDNN_DATA_FLOAT,
+            /*format=*/CUDNN_TENSOR_NCHW,
+            /*out_channels=*/num_outputs,
+            /*in_channels=*/num_filters,
+            /*kernel_height=*/filter_height,
+            /*kernel_width=*/filter_width));
 
     // create output descriptor
     //const int output_dim = input_dim;
@@ -358,13 +359,13 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
 
     cudnnConvolutionBwdDataAlgo_t backward_data_algo;
     checkCUDNN(cudnnGetConvolutionBackwardDataAlgorithm(cudnn,
-                                             filter_descriptor,
-                                             output_grads_descriptor,
-                                             convolution_descriptor,
-                                             data_grads_descriptor,
-                                             CUDNN_CONVOLUTION_BWD_DATA_PREFER_FASTEST,
-                                             0,
-                                             &backward_data_algo));
+                                                        filter_descriptor,
+                                                        output_grads_descriptor,
+                                                        convolution_descriptor,
+                                                        data_grads_descriptor,
+                                                        CUDNN_CONVOLUTION_BWD_DATA_PREFER_FASTEST,
+                                                        0,
+                                                        &backward_data_algo));
 
     size_t workspace_bytes{0};
     checkCUDNN(cudnnGetConvolutionBackwardDataWorkspaceSize(cudnn,
@@ -377,7 +378,7 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
 
     //std::cout << "workspace size: " << workspace_bytes << std::endl;
 
-    void* d_workspace{nullptr};
+    void *d_workspace{nullptr};
     cudaMalloc(&d_workspace, workspace_bytes);
 
     const float alpha = 1.0f, beta = 0.0f;
@@ -435,7 +436,7 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
     const float *input_data = (const float *) input->data;
     const float *output_grads_data = (const float *) output_grads->data;
     //const float *filter_date = (const float *) filter->data;
-	float *filter_grad_data = (float *) filter_grad->data;
+    float *filter_grad_data = (float *) filter_grad->data;
 
     cudnnHandle_t cudnn;
     cudnnCreate(&cudnn);
@@ -454,26 +455,26 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
     cudnnConvolutionDescriptor_t convolution_descriptor;
     checkCUDNN(cudnnCreateConvolutionDescriptor(&convolution_descriptor));
     checkCUDNN(cudnnSetConvolution2dDescriptor(convolution_descriptor,
-                                             /*pad_height=*/padding_height,
-                                             /*pad_width=*/padding_width,
-                                             /*vertical_stride=*/stride_height,
-                                             /*horizontal_stride=*/stride_width,
-                                             /*dilation_height=*/1,
-                                             /*dilation_width=*/1,
-                                             /*mode=*/CUDNN_CROSS_CORRELATION,
-                                             /*computeType=*/CUDNN_DATA_FLOAT));
+            /*pad_height=*/padding_height,
+            /*pad_width=*/padding_width,
+            /*vertical_stride=*/stride_height,
+            /*horizontal_stride=*/stride_width,
+            /*dilation_height=*/1,
+            /*dilation_width=*/1,
+            /*mode=*/CUDNN_CROSS_CORRELATION,
+            /*computeType=*/CUDNN_DATA_FLOAT));
 
 
     // create filter tensors
     cudnnFilterDescriptor_t filter_descriptor;
     checkCUDNN(cudnnCreateFilterDescriptor(&filter_descriptor));
     checkCUDNN(cudnnSetFilter4dDescriptor(filter_descriptor,
-                                        /*dataType=*/CUDNN_DATA_FLOAT,
-                                        /*format=*/CUDNN_TENSOR_NCHW,
-                                        /*out_channels=*/num_outputs,
-                                        /*in_channels=*/num_filters,
-                                        /*kernel_height=*/filter_height,
-                                        /*kernel_width=*/filter_width));
+            /*dataType=*/CUDNN_DATA_FLOAT,
+            /*format=*/CUDNN_TENSOR_NCHW,
+            /*out_channels=*/num_outputs,
+            /*in_channels=*/num_filters,
+            /*kernel_height=*/filter_height,
+            /*kernel_width=*/filter_width));
 
 
     cudnnConvolutionBwdFilterAlgo_t backward_filter_algo;
@@ -494,7 +495,7 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
                                                               filter_descriptor,
                                                               backward_filter_algo,
                                                               &workspace_bytes));
-    void* d_workspace{nullptr};
+    void *d_workspace{nullptr};
     cudaMalloc(&d_workspace, workspace_bytes);
 
     const float alpha = 1.0f, beta = 0.0f;
@@ -526,14 +527,15 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
 }
 
 
-int cudnnMaxPoolingForward(const DLArrayHandle input,
-                        const int pooling_height,
-                        const int pooling_width,
-                        const int stride_height,
-                        const int stride_width,
-                        const char* mode,
-                        DLArrayHandle output){
+int cudnnPoolForward(const DLArrayHandle input,
+                     const int pooling_height,
+                     const int pooling_width,
+                     const int stride_height,
+                     const int stride_width,
+                     const char *mode,
+                     DLArrayHandle output) {
 
+    //std::cout << mode << std::endl;
     const int input_dim = input->ndim;
     const int output_dim = output->ndim;
     assert(input_dim == 4);
@@ -541,6 +543,14 @@ int cudnnMaxPoolingForward(const DLArrayHandle input,
 
     const float *input_data = (const float *) input->data;
     float *output_data = (float *) output->data;
+
+    cudnnPoolingMode_t pooling_mode = CUDNN_POOLING_MAX;
+    std::string str_mode(mode);
+    if (str_mode.compare("average") == 0) {
+        std::cout << str_mode << std::endl;
+        pooling_mode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+        std::cout << pooling_mode << std::endl;
+    }
 
     cudnnHandle_t cudnn;
     cudnnCreate(&cudnn);
@@ -557,14 +567,14 @@ int cudnnMaxPoolingForward(const DLArrayHandle input,
     cudnnPoolingDescriptor_t pooling_descriptor;
     checkCUDNN(cudnnCreatePoolingDescriptor(&pooling_descriptor));
     checkCUDNN(cudnnSetPooling2dDescriptor(pooling_descriptor,
-                                CUDNN_POOLING_MAX,
-                                CUDNN_PROPAGATE_NAN,
-                                pooling_height,
-                                pooling_width,
-                                0, // TODO: parameterize vertical padding
-                                0, // TODO: parameterize horizontal padding
-                                stride_height,
-                                stride_width));
+                                           pooling_mode,
+                                           CUDNN_PROPAGATE_NAN,
+                                           pooling_height,
+                                           pooling_width,
+                                           0, // TODO: parameterize vertical padding
+                                           0, // TODO: parameterize horizontal padding
+                                           stride_height,
+                                           stride_width));
 
 
     const float alpha = 1.0f, beta = 0.0f;
@@ -582,6 +592,18 @@ int cudnnMaxPoolingForward(const DLArrayHandle input,
     cudnnDestroyPoolingDescriptor(pooling_descriptor);
 
     cudnnDestroy(cudnn);
+    return 0;
+}
+
+int cudnnPoolBackward(const DLArrayHandle input,
+                      const DLArrayHandle output_grads,
+                      const DLArrayHandle output,
+                      const int pooling_height,
+                      const int pooling_width,
+                      const int stride_height,
+                      const int stride_width,
+                      DLArrayHandle pool_grad) {
+
     return 0;
 }
 

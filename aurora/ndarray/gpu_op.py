@@ -153,12 +153,12 @@ def cudnn_pool_forward(input,
     assert isinstance(stride_width, int)
     assert isinstance(pooling_height, int)
     assert isinstance(pooling_width, int)
-    assert isinstance(mode, int)
+    assert isinstance(mode, str)
     assert isinstance(output, _nd.NDArray)
 
     mode = mode.encode('utf-8')
 
-    _LIB.cudnnMaxPoolingForward(input.handle,
+    _LIB.cudnnPoolForward(input.handle,
                                 stride_height, stride_width,
                                 pooling_height, pooling_width,
                                 ctypes.c_char_p(mode),
