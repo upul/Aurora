@@ -1,6 +1,11 @@
 from aurora.autodiff.autodiff import Op
 from aurora.nn.pyx.im2col import im2col, col2im
 
+from config import sys_configs
+
+if sys_configs['use_gpu']:
+    from aurora.ndarray import ndarray, gpu_op
+
 
 # TODO: (upul) The numpy version of the Conv2dOp, X_col is calculated twice.
 #       One in compute() of Conv2dOp and the second time inside the compute() of
@@ -47,7 +52,8 @@ class Conv2dOp(Op):
             out = out.reshape(n_filters, h_new, w_new, batch_size)
             output_val[:] = out.transpose(3, 0, 1, 2)
         else:
-            raise NotImplementedError('GPU version of Conv2dOp not yet implemented')
+            gpu_op.cudnn_conv2d_forward(X, W, b, stride_height, stride_width,
+                                        padding_height, padding_width, output_val)
 
     def gradient(self, node, output_grads):
         #
@@ -116,7 +122,8 @@ class Conv2dGradientFilter(Op):
             output_val[:] = dW.reshape(W.shape)
 
         else:
-            raise NotImplementedError('GPU version of Conv2dBackwardFilter not yet implemented')
+            gpu_op.cudnn_conv2d_backward_filter(X, out_grad, stride_height, stride_width,
+                                                padding_height, padding_width, output_val)
 
     def gradient(self, node, output_grads):
         raise NotImplementedError('Gradient of ReluGradientOp not implemented')
@@ -140,6 +147,7 @@ class Conv2dGradientData(Op):
         assert len(input_vals) == 3
         X = input_vals[0]  # data
         W = input_vals[1]  # filter
+        output_grads = input_vals[2]
 
         assert len(X.shape) == 4
         assert len(W.shape) == 4
@@ -148,20 +156,22 @@ class Conv2dGradientData(Op):
         filter_width = W.shape[3]
         n_filters = W.shape[0]
 
+        padding_height, padding_width = node.padding
+        stride_height, stride_width = node.strides
+
         if use_numpy:
             W_reshape = W.reshape(n_filters, -1)
             dout_reshaped = input_vals[2].transpose(1, 2, 3, 0).reshape(n_filters, -1)
 
             dX_col = W_reshape.T @ dout_reshaped
             batch_size, n_channels, img_height, img_width = X.shape
-            padding_height, padding_width = node.padding
-            stride_height, stride_width = node.strides
             output_val[:] = col2im(dX_col, batch_size, n_channels,
                                    img_height, img_width, filter_height, filter_width,
                                    padding_height, padding_width,
                                    stride_height, stride_width)
         else:
-            raise NotImplementedError('GPU version of Conv2dBackwardData not yet implemented')
+            gpu_op.cudnn_conv2d_backward_data(W, output_grads, stride_height, stride_width,
+                                              padding_height, padding_width, output_val)
 
     def gradient(self, node, output_grads):
         raise NotImplementedError('Gradient of ReluGradientOp not implemented')
@@ -186,7 +196,7 @@ class Conv2dGradientBias(Op):
             # db = input_vals[0].sum(axis=(0, 2, 3))
             output_val[:] = input_vals[0].sum(axis=(0, 2, 3))
         else:
-            raise NotImplementedError('GPU version of Conv2dBackwardBias not yet implemented')
+            gpu_op.cudnn_conv2d_backward_bias(input_vals[0], output_val)
 
     def gradient(self, node, output_grads):
         raise NotImplementedError('Gradient of ReluGradientOp not implemented')
