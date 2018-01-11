@@ -35,7 +35,7 @@ class Conv2dOp(Op):
         filter_width = W.shape[3]
         n_filters = W.shape[0]
 
-        b = input_vals[2].reshape(n_filters, -1)
+        b = input_vals[2]
 
         padding_height = node.padding[0]
         padding_width = node.padding[1]
@@ -43,6 +43,7 @@ class Conv2dOp(Op):
         stride_width = node.strides[1]
 
         if use_numpy:
+            b = b.reshape(n_filters, -1)
             h_new = int((h - filter_height + 2 * padding_height) / stride_height + 1)
             w_new = int((w - filter_width + 2 * padding_width) / stride_width + 1)
             X_col = im2col(X, filter_height, filter_width, padding_height, padding_width,
@@ -193,7 +194,6 @@ class Conv2dGradientBias(Op):
         assert len(input_vals) == 1
 
         if use_numpy:
-            # db = input_vals[0].sum(axis=(0, 2, 3))
             output_val[:] = input_vals[0].sum(axis=(0, 2, 3))
         else:
             gpu_op.cudnn_conv2d_backward_bias(input_vals[0], output_val)

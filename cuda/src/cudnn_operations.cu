@@ -144,8 +144,8 @@ int cudnnConv2DForward(const DLArrayHandle input,
     checkCUDNN(cudnnSetFilter4dDescriptor(filter_descriptor,
             /*dataType=*/CUDNN_DATA_FLOAT,
             /*format=*/CUDNN_TENSOR_NCHW,
-            /*out_channels=*/num_outputs,
-            /*in_channels=*/num_filters,
+            /*out_channels=*/num_filters,
+            /*in_channels=*/num_outputs,
             /*kernel_height=*/filter_height,
             /*kernel_width=*/filter_width));
     // create convolution tensor
@@ -168,7 +168,7 @@ int cudnnConv2DForward(const DLArrayHandle input,
                                                    convolution_descriptor,
                                                    output_descriptor,
                                                    CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
-            /*memoryLimitInBytes=*/0,
+                                                   /*memoryLimitInBytes=*/0,
                                                    &convolution_algorithm));
 
     size_t workspace_bytes{0};
@@ -337,8 +337,8 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
     checkCUDNN(cudnnSetFilter4dDescriptor(filter_descriptor,
             /*dataType=*/CUDNN_DATA_FLOAT,
             /*format=*/CUDNN_TENSOR_NCHW,
-            /*out_channels=*/num_outputs,
-            /*in_channels=*/num_filters,
+            /*out_channels=*/num_filters,
+            /*in_channels=*/num_outputs,
             /*kernel_height=*/filter_height,
             /*kernel_width=*/filter_width));
 
@@ -471,8 +471,8 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
     checkCUDNN(cudnnSetFilter4dDescriptor(filter_descriptor,
             /*dataType=*/CUDNN_DATA_FLOAT,
             /*format=*/CUDNN_TENSOR_NCHW,
-            /*out_channels=*/num_outputs,
-            /*in_channels=*/num_filters,
+            /*out_channels=*/num_filters,
+            /*in_channels=*/num_outputs,
             /*kernel_height=*/filter_height,
             /*kernel_width=*/filter_width));
 

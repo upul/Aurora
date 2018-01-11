@@ -361,7 +361,12 @@ class ReshapeOp(Op):
             assert isinstance(input_vals[0], np.ndarray)
             output_val[:] = np.reshape(input_vals[0], newshape=node.newshape)
         else:
-            raise NotImplementedError('GPU version of ReshapeOp not yet implemented')
+            # TODO: (upul) changing share is not an expensive  operation. But looks
+            #     : bit ugly. Can't we find out an alternative approach?
+            input_shape = input_vals[0].shape
+            ndarray.reshape(output_val, input_shape)
+            input_vals[0].copyto(output_val)
+            ndarray.reshape(output_val, node.newshape)
 
     def gradient(self, node, output_grads):
         return [reshape_grad(node.inputs[0], output_grads)]
@@ -383,7 +388,10 @@ class ReshapeGradientOp(Op):
         if use_numpy:
             output_val[:] = input_vals[1].reshape(input_vals[0].shape)
         else:
-            raise NotImplementedError('GPU version of ReshapeGradientOp not yet implemented')
+            # TODO: (upul) changing share is not an expensive  operation. But looks
+            #     : bit ugly. Can't we find out an alternative approach?
+            ndarray.reshape(output_val, input_vals[1].shape)
+            input_vals[1].copyto(output_val)
 
     def gradient(self, node, output_grads):
         raise NotImplementedError('Gradient of ReshapeGradientOp not supported')

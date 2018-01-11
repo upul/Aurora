@@ -69,6 +69,9 @@ int DLArrayCopyFromTo(DLArrayHandle from, DLArrayHandle to,
  */
 int DLGpuArraySet(DLArrayHandle arr, float value);
 
+
+int DLArrayReshape(const DLArrayHandle handle, const index_t *new_shape, index_t new_dim);
+
 /*!
  * \brief Broadcast input array to output array.
  * \param input The input array.

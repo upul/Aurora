@@ -117,6 +117,17 @@ int DLArrayFree(DLArrayHandle handle) {
   API_END();
 }
 
+int DLArrayReshape(const DLArrayHandle handle, const index_t *new_shape, index_t new_dim){
+    API_BEGIN();
+    DLArray *arr = handle;
+
+    index_t *shape_copy = new index_t[new_dim];
+    std::copy(new_shape, new_shape + new_dim, shape_copy);
+    arr->shape = shape_copy;
+    arr->ndim = new_dim;
+    API_END();
+}
+
 int DLArrayCopyFromTo(DLArrayHandle from, DLArrayHandle to,
                       DLStreamHandle stream) {
   API_BEGIN();

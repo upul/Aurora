@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from ._base import _LIB, check_call, c_array
+from . import ndarray as _nd
 import ctypes
 import numpy as np
 
@@ -218,3 +219,12 @@ def empty(shape, ctx=cpu(0)):
     check_call(_LIB.DLArrayAlloc(
         shape, ndim, ctx, ctypes.byref(handle)))
     return NDArray(handle)
+
+
+def reshape(arr, new_shape):
+    assert isinstance(arr, _nd.NDArray)
+    # TODO (upul): check total number of elements match ...
+    shape = c_array(ctypes.c_int64, new_shape)
+    new_dim = len(new_shape)
+    handle = arr.handle
+    check_call(_LIB.DLArrayReshape(handle, shape, new_dim))
