@@ -41,9 +41,9 @@
  * \return the return value of API after exception is handled
  */
 inline int DLSYSAPIHandleException(const std::runtime_error &e) {
-  // TODO
-  // TVMAPISetLastError(e.what());
-  return -1;
+    // TODO
+    // TVMAPISetLastError(e.what());
+    return -1;
 }
 
 #endif // DLSYS_RUNTIME_RUNTIME_BASE_H_

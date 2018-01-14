@@ -16,28 +16,28 @@
 #include <stdint.h>
 
 DLSYS_EXTERN_C {
-  /*!
-   * \brief The device type in DLContext.
-   */
-  typedef enum {
+/*!
+ * \brief The device type in DLContext.
+ */
+typedef enum {
     kCPU = 1,
     kGPU = 2,
-  } DLDeviceType;
+} DLDeviceType;
 
-  /*!
-   * \brief A Device context for array.
-   */
-  typedef struct {
+/*!
+ * \brief A Device context for array.
+ */
+typedef struct {
     /*! \brief The device index */
     int device_id;
     /*! \brief The device type used in the device. */
     DLDeviceType device_type;
-  } DLContext;
+} DLContext;
 
-  /*!
-   * \brief Plain C Array object, does not manage memory.
-   */
-  typedef struct {
+/*!
+ * \brief Plain C Array object, does not manage memory.
+ */
+typedef struct {
     /*!
      * \brief The opaque data pointer points to the allocated data.
      *  This will be CUDA device pointer or cl_mem handle in OpenCL.
@@ -50,7 +50,7 @@ DLSYS_EXTERN_C {
     int ndim;
     /*! \brief The shape of the tensor */
     int64_t *shape;
-  } DLArray;
+} DLArray;
 
 } // DLSYS_EXTERN_C
 #endif // DLSYS_H_

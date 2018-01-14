@@ -213,12 +213,12 @@ int cudnnConv2DForward(const DLArrayHandle input,
                        DLArrayHandle output);
 
 int cudnnPoolForward(const DLArrayHandle input,
-                        const int pooling_height,
-                        const int pooling_width,
-                        const int stride_height,
-                        const int stride_width,
-                        const char *mode,
-                        DLArrayHandle output);
+                     const int pooling_height,
+                     const int pooling_width,
+                     const int stride_height,
+                     const int stride_width,
+                     const char *mode,
+                     DLArrayHandle output);
 
 int cudnnConv2DBackwardFilter(const DLArrayHandle input,
                               const DLArrayHandle output_grads,

@@ -53,6 +53,8 @@ int setTensorDescriptor(cudnnTensorDescriptor_t activationDesc,
     return 0;
 }
 
+cudnnHandle_t cudnn_handler = NULL;
+
 int cudnnReLUForward(const DLArrayHandle input, DLArrayHandle output) {
     const float *input_data = (const float *) input->data;
     float *output_data = (float *) output->data;
@@ -60,8 +62,9 @@ int cudnnReLUForward(const DLArrayHandle input, DLArrayHandle output) {
     assert(input->shape[0] == output->shape[0]);
     assert(input->shape[1] == output->shape[1]);
 
-    cudnnHandle_t cudnn;
-    cudnnCreate(&cudnn);
+    if (!cudnn_handler) {
+        cudnnCreate(&cudnn_handler);
+    }
 
     cudnnActivationDescriptor_t activation_descriptor;
     checkCUDNN(cudnnCreateActivationDescriptor(&activation_descriptor));
@@ -79,7 +82,7 @@ int cudnnReLUForward(const DLArrayHandle input, DLArrayHandle output) {
     setTensorDescriptor(output_descriptor, output->ndim, output->shape);
 
     const float alpha = 1.0f, beta = 0.0f;
-    checkCUDNN(cudnnActivationForward(cudnn,
+    checkCUDNN(cudnnActivationForward(cudnn_handler,
                                       activation_descriptor,
                                       &alpha,
                                       input_descriptor,
@@ -125,8 +128,9 @@ int cudnnConv2DForward(const DLArrayHandle input,
     const float *bias_data = (const float *) bias->data;
     float *output_data = (float *) output->data;
 
-    cudnnHandle_t cudnn;
-    cudnnCreate(&cudnn);
+    if (!cudnn_handler) {
+        cudnnCreate(&cudnn_handler);
+    }
 
 
     // creating input and output tensors
@@ -162,17 +166,17 @@ int cudnnConv2DForward(const DLArrayHandle input,
             /*computeType=*/CUDNN_DATA_FLOAT));
 
     cudnnConvolutionFwdAlgo_t convolution_algorithm;
-    checkCUDNN(cudnnGetConvolutionForwardAlgorithm(cudnn,
+    checkCUDNN(cudnnGetConvolutionForwardAlgorithm(cudnn_handler,
                                                    input_descriptor,
                                                    filter_descriptor,
                                                    convolution_descriptor,
                                                    output_descriptor,
                                                    CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
-                                                   /*memoryLimitInBytes=*/0,
+            /*memoryLimitInBytes=*/0,
                                                    &convolution_algorithm));
 
     size_t workspace_bytes{0};
-    checkCUDNN(cudnnGetConvolutionForwardWorkspaceSize(cudnn,
+    checkCUDNN(cudnnGetConvolutionForwardWorkspaceSize(cudnn_handler,
                                                        input_descriptor,
                                                        filter_descriptor,
                                                        convolution_descriptor,
@@ -187,7 +191,7 @@ int cudnnConv2DForward(const DLArrayHandle input,
 
     const float alpha = 1.0f, beta = 0.0f;
 
-    checkCUDNN(cudnnConvolutionForward(cudnn,
+    checkCUDNN(cudnnConvolutionForward(cudnn_handler,
                                        &alpha,
                                        input_descriptor,
                                        input_data,
@@ -212,7 +216,7 @@ int cudnnConv2DForward(const DLArrayHandle input,
                                           num_filters,
                                           1,
                                           1));
-    checkCUDNN(cudnnAddTensor(cudnn,
+    checkCUDNN(cudnnAddTensor(cudnn_handler,
                               &alpha,
                               bias_descriptor,
                               bias_data,
@@ -225,9 +229,8 @@ int cudnnConv2DForward(const DLArrayHandle input,
     cudnnDestroyTensorDescriptor(input_descriptor);
     cudnnDestroyTensorDescriptor(output_descriptor);
     cudnnDestroyFilterDescriptor(filter_descriptor);
+    cudnnDestroyTensorDescriptor(bias_descriptor);
     cudnnDestroyConvolutionDescriptor(convolution_descriptor);
-
-    cudnnDestroy(cudnn);
 
     return 0;
 }
@@ -242,8 +245,9 @@ int cudnnConv2DBackwardBias(const DLArrayHandle output_grads,
     assert(bias_grads_dim == 1);
     const int num_filters = bias_grads->shape[0];
 
-    cudnnHandle_t cudnn;
-    cudnnCreate(&cudnn);
+    if (!cudnn_handler) {
+        cudnnCreate(&cudnn_handler);
+    }
 
     // creating output_grads descriptor
     cudnnTensorDescriptor_t output_grads_descriptor;
@@ -262,7 +266,7 @@ int cudnnConv2DBackwardBias(const DLArrayHandle output_grads,
                                           1));
 
     const float alpha = 1.0f, beta = 0.0f;
-    checkCUDNN(cudnnConvolutionBackwardBias(cudnn,
+    checkCUDNN(cudnnConvolutionBackwardBias(cudnn_handler,
                                             &alpha,
                                             output_grads_descriptor,
                                             output_grads_data,
@@ -273,7 +277,6 @@ int cudnnConv2DBackwardBias(const DLArrayHandle output_grads,
 
     cudnnDestroyTensorDescriptor(bias_descriptor);
     cudnnDestroyTensorDescriptor(output_grads_descriptor);
-    cudnnDestroy(cudnn);
 
     return 0;
 }
@@ -305,14 +308,9 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
     const float *output_grads_data = (const float *) output_grads->data;
     float *data_grad_data = (float *) data_grad->data;
 
-
-    cudnnHandle_t cudnn;
-    cudnnCreate(&cudnn);
-
-    // creating input descriptor
-    //cudnnTensorDescriptor_t input_descriptor;
-    //checkCUDNN(cudnnCreateTensorDescriptor(&input_descriptor));
-    //setTensorDescriptor(input_descriptor, input->ndim, input->shape);
+    if (!cudnn_handler) {
+        cudnnCreate(&cudnn_handler);
+    }
 
     // creating output_grads descriptor
     cudnnTensorDescriptor_t output_grads_descriptor;
@@ -342,23 +340,12 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
             /*kernel_height=*/filter_height,
             /*kernel_width=*/filter_width));
 
-    // create output descriptor
-    //const int output_dim = input_dim;
-    //const int output_height = (int)((input->shape[2] - filter_height + 2*padding_height)/stride_height + 1);
-    //const int output_width = (int)((input->shape[3] - filter_width + 2*padding_width)/stride_width + 1);
-    //const long output_shapes[] = {input->shape[0], num_filters, output_height, output_width};
-
-    // creating output_grads descriptor
-    //cudnnTensorDescriptor_t output_descriptor;
-    //checkCUDNN(cudnnCreateTensorDescriptor(&output_descriptor));
-    //setTensorDescriptor(output_descriptor, output_dim, output_shapes);
-    // creating output_grads descriptor
     cudnnTensorDescriptor_t data_grads_descriptor;
     checkCUDNN(cudnnCreateTensorDescriptor(&data_grads_descriptor));
     setTensorDescriptor(data_grads_descriptor, data_grad->ndim, data_grad->shape);
 
     cudnnConvolutionBwdDataAlgo_t backward_data_algo;
-    checkCUDNN(cudnnGetConvolutionBackwardDataAlgorithm(cudnn,
+    checkCUDNN(cudnnGetConvolutionBackwardDataAlgorithm(cudnn_handler,
                                                         filter_descriptor,
                                                         output_grads_descriptor,
                                                         convolution_descriptor,
@@ -368,7 +355,7 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
                                                         &backward_data_algo));
 
     size_t workspace_bytes{0};
-    checkCUDNN(cudnnGetConvolutionBackwardDataWorkspaceSize(cudnn,
+    checkCUDNN(cudnnGetConvolutionBackwardDataWorkspaceSize(cudnn_handler,
                                                             filter_descriptor,
                                                             output_grads_descriptor,
                                                             convolution_descriptor,
@@ -382,7 +369,7 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
     cudaMalloc(&d_workspace, workspace_bytes);
 
     const float alpha = 1.0f, beta = 0.0f;
-    checkCUDNN(cudnnConvolutionBackwardData(cudnn,
+    checkCUDNN(cudnnConvolutionBackwardData(cudnn_handler,
                                             &alpha,
                                             filter_descriptor,
                                             filter_date,
@@ -403,8 +390,6 @@ int cudnnConv2DBackwardData(const DLArrayHandle filter,
     cudnnDestroyTensorDescriptor(output_grads_descriptor);
     cudnnDestroyFilterDescriptor(filter_descriptor);
     cudnnDestroyConvolutionDescriptor(convolution_descriptor);
-
-    cudnnDestroy(cudnn);
 
     //std::cout << "leaveing cudnnConv2DBackwardData" << std::endl;
     return 0;
@@ -438,8 +423,11 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
     //const float *filter_date = (const float *) filter->data;
     float *filter_grad_data = (float *) filter_grad->data;
 
-    cudnnHandle_t cudnn;
-    cudnnCreate(&cudnn);
+    //cudnnHandle_t cudnn;
+    //cudnnCreate(&cudnn);
+    if (!cudnn_handler) {
+        cudnnCreate(&cudnn_handler);
+    }
 
     // creating input descriptor
     cudnnTensorDescriptor_t input_descriptor;
@@ -478,7 +466,7 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
 
 
     cudnnConvolutionBwdFilterAlgo_t backward_filter_algo;
-    checkCUDNN(cudnnGetConvolutionBackwardFilterAlgorithm(cudnn,
+    checkCUDNN(cudnnGetConvolutionBackwardFilterAlgorithm(cudnn_handler,
                                                           input_descriptor,
                                                           output_grads_descriptor,
                                                           convolution_descriptor,
@@ -488,7 +476,7 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
                                                           &backward_filter_algo));
 
     size_t workspace_bytes{0};
-    checkCUDNN(cudnnGetConvolutionBackwardFilterWorkspaceSize(cudnn,
+    checkCUDNN(cudnnGetConvolutionBackwardFilterWorkspaceSize(cudnn_handler,
                                                               input_descriptor,
                                                               output_grads_descriptor,
                                                               convolution_descriptor,
@@ -499,7 +487,7 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
     cudaMalloc(&d_workspace, workspace_bytes);
 
     const float alpha = 1.0f, beta = 0.0f;
-    checkCUDNN(cudnnConvolutionBackwardFilter(cudnn,
+    checkCUDNN(cudnnConvolutionBackwardFilter(cudnn_handler,
                                               &alpha,
                                               input_descriptor,
                                               input_data,
@@ -521,7 +509,7 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
     cudnnDestroyFilterDescriptor(filter_descriptor);
     cudnnDestroyConvolutionDescriptor(convolution_descriptor);
 
-    cudnnDestroy(cudnn);
+    //cudnnDestroy(cudnn);
 
     return 0;
 }
@@ -552,8 +540,9 @@ int cudnnPoolForward(const DLArrayHandle input,
         std::cout << pooling_mode << std::endl;
     }
 
-    cudnnHandle_t cudnn;
-    cudnnCreate(&cudnn);
+    if (!cudnn_handler) {
+        cudnnCreate(&cudnn_handler);
+    }
 
     // creating input and output tensors
     cudnnTensorDescriptor_t input_descriptor;
@@ -578,7 +567,7 @@ int cudnnPoolForward(const DLArrayHandle input,
 
 
     const float alpha = 1.0f, beta = 0.0f;
-    checkCUDNN(cudnnPoolingForward(cudnn,
+    checkCUDNN(cudnnPoolingForward(cudnn_handler,
                                    pooling_descriptor,
                                    &alpha,
                                    input_descriptor,
@@ -591,7 +580,6 @@ int cudnnPoolForward(const DLArrayHandle input,
     cudnnDestroyTensorDescriptor(output_descriptor);
     cudnnDestroyPoolingDescriptor(pooling_descriptor);
 
-    cudnnDestroy(cudnn);
     return 0;
 }
 

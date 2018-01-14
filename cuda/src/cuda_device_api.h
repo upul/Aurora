@@ -14,21 +14,21 @@
 #include <string>
 
 namespace dlsys {
-namespace runtime {
+    namespace runtime {
 
-class CUDADeviceAPI : public DeviceAPI {
-public:
-  void *AllocDataSpace(DLContext ctx, size_t size, size_t alignment) final;
+        class CUDADeviceAPI : public DeviceAPI {
+        public:
+            void *AllocDataSpace(DLContext ctx, size_t size, size_t alignment) final;
 
-  void FreeDataSpace(DLContext ctx, void *ptr) final;
+            void FreeDataSpace(DLContext ctx, void *ptr) final;
 
-  void CopyDataFromTo(const void *from, void *to, size_t size,
-                      DLContext ctx_from, DLContext ctx_to,
-                      DLStreamHandle stream) final;
+            void CopyDataFromTo(const void *from, void *to, size_t size,
+                                DLContext ctx_from, DLContext ctx_to,
+                                DLStreamHandle stream) final;
 
-  void StreamSync(DLContext ctx, DLStreamHandle stream) final;
-};
+            void StreamSync(DLContext ctx, DLStreamHandle stream) final;
+        };
 
-} // namespace runtime
+    } // namespace runtime
 } // namespace dlsys
 #endif // DLSYS_RUNTIME_CUDA_DEVICE_API_H_
