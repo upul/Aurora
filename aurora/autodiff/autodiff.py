@@ -390,7 +390,7 @@ class ReshapeGradientOp(Op):
         else:
             # TODO: (upul) changing share is not an expensive  operation. But looks
             #     : bit ugly. Can't we find out an alternative approach?
-            ndarray.reshape(output_val, input_vals[1].shape)
+            ndarray.reshape(output_val, input_vals[0].shape)
             input_vals[1].copyto(output_val)
 
     def gradient(self, node, output_grads):
@@ -399,6 +399,7 @@ class ReshapeGradientOp(Op):
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 2
         return input_shapes[0]
+
 
 class MulOp(Op):
     def __call__(self, node_A, node_B):
@@ -531,6 +532,10 @@ class PlaceholderOp(Op):
 
 
 class ReduceSumOp(Op):
+    """
+
+    """
+
     def __call__(self, node_A):
         new_node = Op.__call__(self)
         new_node.inputs = [node_A]
@@ -538,6 +543,14 @@ class ReduceSumOp(Op):
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
+        """
+
+        :param node:
+        :param input_vals:
+        :param output_val:
+        :param use_numpy:
+        :return:
+        """
         assert len(input_vals) == 1
         if use_numpy:
             assert isinstance(output_val, np.ndarray)

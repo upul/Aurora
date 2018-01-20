@@ -509,8 +509,6 @@ int cudnnConv2DBackwardFilter(const DLArrayHandle input,
     cudnnDestroyFilterDescriptor(filter_descriptor);
     cudnnDestroyConvolutionDescriptor(convolution_descriptor);
 
-    //cudnnDestroy(cudnn);
-
     return 0;
 }
 
@@ -523,7 +521,6 @@ int cudnnPoolForward(const DLArrayHandle input,
                      const char *mode,
                      DLArrayHandle output) {
 
-    //std::cout << mode << std::endl;
     const int input_dim = input->ndim;
     const int output_dim = output->ndim;
     assert(input_dim == 4);
@@ -590,7 +587,89 @@ int cudnnPoolBackward(const DLArrayHandle input,
                       const int pooling_width,
                       const int stride_height,
                       const int stride_width,
+                      const char *mode,
                       DLArrayHandle pool_grad) {
+
+
+    const int input_dim = input->ndim;
+    const int output_dim = output->ndim;
+    const int output_grads_dim = output_grads->ndim;
+    const int pool_grad_dim = pool_grad->ndim;
+    assert(input_dim == 4);
+    assert(output_dim == 4);
+    assert(output_grads_dim == 4);
+    assert(pool_grad_dim == 4);
+
+    const float *input_data = (const float*) input->data;
+    const float *output_data = (const float*) output->data;
+    const float *output_grads_data = (const float*) output_grads->data;
+    float *pool_grad_data = (float*) pool_grad->data;
+
+    cudnnPoolingMode_t pooling_mode = CUDNN_POOLING_MAX;
+    std::string str_mode(mode);
+    if (str_mode.compare("average") == 0) {
+        std::cout << str_mode << std::endl;
+        pooling_mode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+        std::cout << pooling_mode << std::endl;
+    }
+
+    if (!cudnn_handler) {
+        cudnnCreate(&cudnn_handler);
+    }
+
+    // input descriptor
+    cudnnTensorDescriptor_t input_descriptor;
+    checkCUDNN(cudnnCreateTensorDescriptor(&input_descriptor));
+    setTensorDescriptor(input_descriptor, input->ndim, input->shape);
+
+    // ouput descriptor
+    cudnnTensorDescriptor_t output_descriptor;
+    checkCUDNN(cudnnCreateTensorDescriptor(&output_descriptor));
+    setTensorDescriptor(output_descriptor, output->ndim, output->shape);
+
+    // output grad descriptor
+    cudnnTensorDescriptor_t output_grad_descriptor;
+    checkCUDNN(cudnnCreateTensorDescriptor(&output_grad_descriptor));
+    setTensorDescriptor(output_grad_descriptor, output_grads->ndim, output_grads->shape);
+
+    // pool grad descriptor
+    cudnnTensorDescriptor_t pool_grad_descriptor;
+    checkCUDNN(cudnnCreateTensorDescriptor(&pool_grad_descriptor));
+    setTensorDescriptor(pool_grad_descriptor, pool_grad->ndim, pool_grad->shape);
+
+    // TODO: reuse already defined pooling descriptor in forward pass
+    cudnnPoolingDescriptor_t pooling_descriptor;
+    checkCUDNN(cudnnCreatePoolingDescriptor(&pooling_descriptor));
+    checkCUDNN(cudnnSetPooling2dDescriptor(pooling_descriptor,
+                                           pooling_mode,
+                                           CUDNN_PROPAGATE_NAN,
+                                           pooling_height,
+                                           pooling_width,
+                                           0, // TODO: parameterize vertical padding
+                                           0, // TODO: parameterize horizontal padding
+                                           stride_height,
+                                           stride_width));
+
+
+    const float alpha = 1.0f, beta = 0.0f;
+    checkCUDNN(cudnnPoolingBackward(cudnn_handler,
+                                   pooling_descriptor,
+                                   &alpha,
+                                   output_descriptor,
+                                   output_data,
+                                   output_grad_descriptor,
+                                   output_grads_data,
+                                   input_descriptor,
+                                   input_data,
+                                   &beta,
+                                   pool_grad_descriptor,
+                                   pool_grad_data));
+
+    cudnnDestroyTensorDescriptor(input_descriptor);
+    cudnnDestroyTensorDescriptor(output_descriptor);
+    cudnnDestroyTensorDescriptor(output_grad_descriptor);
+    cudnnDestroyTensorDescriptor(pool_grad_descriptor);
+    cudnnDestroyPoolingDescriptor(pooling_descriptor);
 
     return 0;
 }

@@ -1,6 +1,11 @@
 from aurora.autodiff.autodiff import Op
 from aurora.nn.pyx.fast_pooling import max_pool_forward, max_pool_backward
 
+from config import sys_configs
+
+if sys_configs['use_gpu']:
+    from aurora.ndarray import ndarray, gpu_op
+
 
 class MaxPoolOp(Op):
     def __call__(self, input, filter=(2, 2), strides=(2, 2)):
@@ -8,6 +13,7 @@ class MaxPoolOp(Op):
         new_node.inputs = [input]
         new_node.filter = filter
         new_node.strides = strides
+        new_node.cache = {}
         new_node.name = 'MaxPoolOp({})'.format(input.name)
         return new_node
 
@@ -26,10 +32,15 @@ class MaxPoolOp(Op):
                                              stride_height=stride_height,
                                              stride_width=stride_width)
         else:
-            raise NotImplementedError('GPU version of MaxPoolOp not yet implemented')
+            gpu_op.cudnn_pool_forward(input_vals[0],
+                                      filter_height, filter_width,
+                                      stride_height, stride_width,
+                                      'max',
+                                      output_val)
+            node.cache['forward'] = output_val
 
     def gradient(self, node, output_grads):
-        return [maxPoolBack(node.inputs[0], output_grads)]
+        return [maxPoolBack(node.inputs[0], output_grads, cache=node.cache)]
 
     def infer_shape(self, node, input_shapes):
         assert len(input_shapes) == 1
@@ -49,14 +60,15 @@ class MaxPoolOp(Op):
         return input_batch_size, input_n_channels, new_height, new_width
 
 
-class MaxGradientOp(Op):
-    def __call__(self, node_A, node_B, filter=(2, 2), strides=(2, 2)):
+class MaxPoolGradientOp(Op):
+    def __call__(self, node_A, node_B, filter=(2, 2), strides=(2, 2), cache=None):
         new_node = Op.__call__(self)
         # node_B is the output_grad
         new_node.inputs = [node_A, node_B]
         new_node.filter = filter
         new_node.strides = strides
-        new_node.name = 'AverageGradientOp(%s)' % (node_A.name)
+        new_node.cache = cache
+        new_node.name = 'MaxPoolGradientOp(%s)' % (node_A.name)
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
@@ -78,7 +90,11 @@ class MaxGradientOp(Op):
                                               stride_width=stride_width
                                               )
         else:
-            raise NotImplementedError('GPU version of AverageGradientOp not yet implemented')
+            gpu_op.cudnn_pool_backward(data, output_grad, node.cache['forward'],
+                                       filter_height, filter_width,
+                                       stride_height, stride_width,
+                                       'max',
+                                       output_val)
 
     def gradient(self, node, output_grads):
         raise NotImplementedError('Gradient of AverageGradientOp is not implemented')
@@ -90,4 +106,4 @@ class MaxGradientOp(Op):
 
 # Global singleton operators
 maxPool = MaxPoolOp()
-maxPoolBack = MaxGradientOp()
+maxPoolBack = MaxPoolGradientOp()
