@@ -1,10 +1,10 @@
 import numpy as np
 from aurora.autodiff.autodiff import Op
 from aurora.nn.utils import softmax_func
-from config import sys_configs
-
-if sys_configs['use_gpu']:
-    from aurora.ndarray import ndarray, gpu_op
+try:
+    from aurora.ndarray import gpu_op, ndarray
+except ImportError:
+    pass
 
 
 class ReluOp(Op):

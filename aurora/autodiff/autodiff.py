@@ -1,8 +1,8 @@
 import numpy as np
-from config import sys_configs
-
-if sys_configs['use_gpu']:
-    from aurora.ndarray import ndarray, gpu_op
+try:
+    from aurora.ndarray import gpu_op, ndarray
+except ImportError:
+    pass
 
 
 class Node(object):

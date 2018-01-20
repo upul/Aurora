@@ -28,7 +28,9 @@ def log_sum_exp(x):
     return mx + np.log(np.sum(np.exp(safe), axis=1, keepdims=True))
 
 
-# TODO: (upul) replace im2col and col2im with high-performance Cython implementations.
+# Following two methods were used in the initial version of the convolution operations.
+# Later we introduced fast Cython versions of `im2col` and `col2im` implementations.
+# Hence, these two methods are obsolete.
 def im2col(image, filter_size=(3, 3), padding=(0, 0), stride=(1, 1)):
     M, C, h, w, = image.shape
     filter_height = filter_size[0]

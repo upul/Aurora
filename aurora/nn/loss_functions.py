@@ -1,12 +1,13 @@
 import numpy as np
 from aurora.autodiff.autodiff import Op, zeros_like
-from .utils import softmax_func
-from .utils import log_sum_exp
-from .activations import softmax
-from config import sys_configs
 
-if sys_configs['use_gpu']:
-    from aurora.ndarray import ndarray, gpu_op
+from .activations import softmax
+from .utils import log_sum_exp
+
+try:
+    from aurora.ndarray import gpu_op, ndarray
+except ImportError:
+    pass
 
 
 class CrossEntropyOp(Op):
@@ -23,10 +24,6 @@ class CrossEntropyOp(Op):
             actual = input_vals[1]
             safe_log_softmax = logits - log_sum_exp(logits)
             output_val[:] = np.mean(-np.sum(actual * safe_log_softmax, axis=1), keepdims=True)
-
-            # pred = softmax_func(input_vals[0])
-            # actual = input_vals[1]
-            # output_val[:] = np.mean(-np.sum(actual * np.log(pred), axis=1), keepdims=True)
         else:
             gpu_op.softmax_cross_entropy(input_vals[0], input_vals[1], output_val)
 

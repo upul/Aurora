@@ -1,10 +1,10 @@
 from aurora.autodiff.autodiff import Op
 from aurora.nn.pyx.fast_pooling import max_pool_forward, max_pool_backward
 
-from config import sys_configs
-
-if sys_configs['use_gpu']:
-    from aurora.ndarray import ndarray, gpu_op
+try:
+    from aurora.ndarray import gpu_op
+except ImportError:
+    pass
 
 
 class MaxPoolOp(Op):

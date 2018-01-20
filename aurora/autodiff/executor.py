@@ -1,10 +1,10 @@
 import numpy as np
 from aurora.autodiff.autodiff import PlaceholderOp
 from .utils import find_topo_sort
-from config import sys_configs
-
-if sys_configs['use_gpu']:
-    from aurora.ndarray import ndarray
+try:
+    from aurora.ndarray import gpu_op, ndarray
+except ImportError:
+    pass
 
 
 class Executor:

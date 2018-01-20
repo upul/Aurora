@@ -1,8 +1,8 @@
 import aurora.autodiff as ad
-from config import sys_configs
-
-if sys_configs['use_gpu']:
+try:
     from aurora.ndarray import ndarray
+except ImportError:
+    pass
 
 
 class Base:
