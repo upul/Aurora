@@ -2,6 +2,8 @@ import numpy as np
 import numpy.testing as npt
 from aurora.nn.pyx.fast_pooling import max_pool_forward
 from aurora.nn.pyx.fast_pooling import max_pool_backward
+from aurora.nn.pyx.im2col import im2col
+from aurora.nn.pyx.im2col import col2im
 from tests.utils.gradient_check import gradient_check_numpy_expr
 
 
@@ -113,4 +115,102 @@ def test_max_pooling_backward():
     numerical = gradient_check_numpy_expr(lambda d: max_pool_forward(d, 2, 2, 2, 2), data, output_grad)
     npt.assert_array_almost_equal(numerical, result, decimal=4)
 
+
 # Testing Image to Column operations
+def test_im2col():
+    data = np.arange(16).reshape((1, 1, 4, 4)).astype(np.float64)
+    # one image in the batch 2 by 2 kernel with stride = 1
+    result = im2col(data, filter_height=2, filter_width=2,
+                    padding_height=0, padding_width=0,
+                    stride_height=1, stride_width=1)
+
+    expected = np.array([[0, 1, 2, 4, 5, 6, 8, 9, 10],
+                         [1, 2, 3, 5, 6, 7, 9, 10, 11],
+                         [4, 5, 6, 8, 9, 10, 12, 13, 14],
+                         [5, 6, 7, 9, 10, 11, 13, 14, 15]]).astype(np.float64)
+    npt.assert_array_almost_equal(result, expected)
+
+    # one image in the batch 2 by 2 kernel with stride = 2
+    result = im2col(data, filter_height=2, filter_width=2,
+                    padding_height=0, padding_width=0,
+                    stride_height=2, stride_width=2)
+    expected = np.array([[0, 2, 8, 10],
+                         [1, 3, 9, 11],
+                         [4, 6, 12, 14],
+                         [5, 7, 13, 15]]).astype(np.float64)
+    npt.assert_array_almost_equal(result, expected)
+
+    # one image in the batche 2 by 2 kernel with stride = 1 and padding  = 1
+    data = np.arange(9).reshape(1, 1, 3, 3).astype(np.float64)
+    result = im2col(data, filter_height=2, filter_width=2,
+                    padding_height=1, padding_width=1,
+                    stride_height=1, stride_width=1)
+    expected = np.array([[0, 0, 0, 0, 0, 0, 1, 2, 0, 3, 4, 5, 0, 6, 7, 8],
+                         [0, 0, 0, 0, 0, 1, 2, 0, 3, 4, 5, 0, 6, 7, 8, 0],
+                         [0, 0, 1, 2, 0, 3, 4, 5, 0, 6, 7, 8, 0, 0, 0, 0],
+                         [0, 1, 2, 0, 3, 4, 5, 0, 6, 7, 8, 0, 0, 0, 0, 0]]).astype(np.float64)
+    npt.assert_array_almost_equal(result, expected)
+
+    # more than one color channels
+    # kernel 2 by 2 stride = 1
+    data = np.arange(18).reshape(1, 2, 3, 3).astype(np.float64)
+    result = im2col(data, filter_height=2, filter_width=2,
+                    padding_height=0, padding_width=0,
+                    stride_height=1, stride_width=1)
+    expected = np.array([[0, 1, 3, 4],
+                         [1, 2, 4, 5],
+                         [3, 4, 6, 7],
+                         [4, 5, 7, 8],
+                         [9, 10, 12, 13],
+                         [10, 11, 13, 14],
+                         [12, 13, 15, 16],
+                         [13, 14, 16, 17]])
+    npt.assert_array_almost_equal(result, expected)
+
+    # more than one batch and color chennel
+    # kernel 2 by 2 with stride of 1
+    data = np.arange(36).reshape(2, 2, 3, 3).astype(np.float64)
+    result = im2col(data, filter_height=2, filter_width=2,
+                    padding_height=0, padding_width=0,
+                    stride_height=1, stride_width=1)
+    expected = np.array([[0, 18, 1, 19, 3, 21, 4, 22],
+                         [1, 19, 2, 20, 4, 22, 5, 23],
+                         [3, 21, 4, 22, 6, 24, 7, 25],
+                         [4, 22, 5, 23, 7, 25, 8, 26],
+                         [9, 27, 10, 28, 12, 30, 13, 31],
+                         [10, 28, 11, 29, 13, 31, 14, 32],
+                         [12, 30, 13, 31, 15, 33, 16, 34],
+                         [13, 31, 14, 32, 16, 34, 17, 35]]).astype(np.float64)
+    print(np.array(result))
+    npt.assert_array_almost_equal(result, expected)
+
+    # TODO: (upul) test several kernel sizes and different stride, kernel size and padding
+    #     : in different directions
+
+
+def test_col2im():
+    # batch size 1, color channels 1, 3 by 3 image. Stride 1, filter 2 by 2 and no padding
+    data = np.arange(9).reshape((1, 1, 3, 3)).astype(np.float64)
+    i2c_result = im2col(data, filter_height=2, filter_width=2,
+                        padding_height=0, padding_width=0,
+                        stride_height=1, stride_width=1)
+    result = col2im(i2c_result, 1, 1, 3, 3,
+                    2, 2,
+                    0, 0,
+                    1, 1)
+    expected = np.array([[[[0., 2., 2.],
+                           [6., 16., 10.],
+                           [6., 14., 8.]]]]).astype(np.float64)
+    npt.assert_array_almost_equal(result, expected)
+
+    # batch size 1, color channels 1, 4 by 4 image. Stride 2, filter 2 by 2 and no padding
+    data = np.arange(16).reshape((1, 1, 4, 4)).astype(np.float64)
+    i2c_result = im2col(data, filter_height=2, filter_width=2,
+                        padding_height=0, padding_width=0,
+                        stride_height=2, stride_width=2)
+    result = col2im(i2c_result,
+                    1, 1,  # batch size and color channels
+                    4, 4,  # img width and height
+                    2, 2,  # kernel
+                    0, 0,  # padding
+                    2, 2)  # stride
