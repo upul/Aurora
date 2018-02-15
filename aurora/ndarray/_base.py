@@ -18,7 +18,11 @@ def _load_lib():
 
 
 # global library instance
-_LIB = _load_lib()
+try:
+    _LIB = _load_lib()
+except:
+    # TODO: (upul) Do we need to log the error message?
+    pass 
 
 
 ##################
