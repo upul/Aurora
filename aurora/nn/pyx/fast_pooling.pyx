@@ -2,6 +2,9 @@ cimport cython
 import numpy as np
 cimport numpy as np
 
+# TODO: (Upul) We need a better way to represent a big negative number
+cdef float BIG_NEGATIVE = -1.0e15
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def max_pool_forward(np.float64_t[:, :, :, :] data,
@@ -30,24 +33,20 @@ def max_pool_forward(np.float64_t[:, :, :, :] data,
     # Initialize output matrix
     cdef np.float64_t[:, :, :, :] output = np.zeros((batch_size, n_C, n_H, n_W))
 
-    cdef int i, c, h, w
-    cdef int vert_start, vert_end, horiz_start, horiz_end
+    cdef int i, c, h, w, vert_start, vert_end, horiz_start, horiz_end,  ii, jj
+    cdef float max_in_grid
 
-    cdef float max_in_grid = -1e20
-    cdef int ii, jj
-
-    for i in range(batch_size):       # loop over the training examples
-        for c in range (n_C):         # loop over the channels of the output volume
-            for h in range(n_H):      # loop on the vertical axis of the output volume
-                for w in range(n_W):  # loop on the horizontal axis of the output volume
-
+    for i in range(batch_size):           # loop over the training examples
+        for c in range (n_C):             # loop over the channels of the output volume
+            for h in range(n_H):          # loop on the vertical axis of the output volume
+                for w in range(n_W):      # loop on the horizontal axis of the output volume
                     # Find the corners of the current "slice"
                     vert_start = h*stride_height
                     vert_end = h*stride_height + filter_height
                     horiz_start = w*stride_width
                     horiz_end = w*stride_width + filter_width
-
-                    max_in_grid = -1e20
+                    # finding the max value within the given grid
+                    max_in_grid = BIG_NEGATIVE
                     for ii in range(vert_start, vert_end):
                         for jj in range(horiz_start, horiz_end):
                             if data[i, c, ii, jj] > max_in_grid:
@@ -109,12 +108,8 @@ cdef _max_pool_backward_inner(np.float64_t[:, :, :, :] output_grad,
     grad_input = np.zeros_like(input_data)
 
     cdef np.float64_t[:, :, :]  cct_example
-    cdef int h, w, c, vert_start, vert_end, horiz_start, horiz_end
-
-    cdef int slice_height, slice_width
-    cdef int max_i, max_j
-    cdef float max_value
-    cdef float cct_value
+    cdef int h, w, c, vert_start, vert_end, horiz_start, horiz_end, slice_height, slice_width, max_i, max_j
+    cdef float max_value, cct_value
 
     # loop over the training examples
     for i in range(batch_size):
@@ -133,7 +128,7 @@ cdef _max_pool_backward_inner(np.float64_t[:, :, :, :] output_grad,
                     horiz_end = w*stride_width + filter_width
 
                     # Compute the backward propagation in both modes.
-                    max_value = -1.0e20
+                    max_value = BIG_NEGATIVE
                     for slice_height in range(vert_start, vert_end):
                         for slice_width in range(horiz_start, horiz_end):
                             cct_value = cct_example[c, slice_height, slice_width]
