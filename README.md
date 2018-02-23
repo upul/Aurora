@@ -1,33 +1,19 @@
-<!--p align="center">
-    <img src="https://github.com/upul/Aurora/blob/master/resources/logo.png" alt="logo">
-</p-->
 # Aurora: Minimal Deep Learning Library.
 
-Aurora is a minimal deep learning library written in Python/Numpy and a bit of C++. It was designed to construct simple deep learning systems such as simple MLP. The current version comes with following features.
+Aurora is a minimal deep learning library written in Python, Cython, and C++ with the help of Numpy, CUDA, and cuDNN. Though it is simple, Aurora comes with some advanced design concepts found it a typical deep learning library. 
 
 * Automatic differentiation using static computational graphs.
-* Shape inference.
+* Shape and type inference.
 * Static memory allocation for efficient training and inference.
-* Support both GPU (using Nvidia CUDA) and numpy.
 
-Tough Aurora in a minimal deep learning system, it is quite capable of building MLPs for real-world datasets such as MINST and CIFAR-10. 
-
-### Future Work
-
-Following features will be added in upcoming releases.
-
-* Dropout and Batch-norm.
-* Convolutional operators.
-* cuDNN support.
-* Model checkpointing.
-* Multi-GPU and distributed training.
 
 ### Installation
 
-Aurora relies on number of external libraries including CUDA and NumPy. For CUDA installation instruction please refer official CUDA documentation. Python dependencies can be install by running `requirements.txt` file.
+Aurora relies on several external libraries including `CUDA`, `cuDNN`, and `NumPy`. For `CUDA` and `cuDNN` installation instructions please refer official documentation. Python dependencies can be installed by running the `requirements.txt` file.
 
 ##### Environment setup
-In order to use GPU capabilities of the Aurora library, you need to have a Nvidia GPU. If CUDA toolkit is not already installed, first install the latest version of the CUDA toolkit. Next, set following environment variables.
+
+To utilize GPU capabilities of the Aurora library, you need to have a Nvidia GPU. If `CUDA` toolkit is not already installed, first install the latest version of the `CUDA` toolkit as well as `cuDNN` library. Next, set following environment variables.
 
 ```bash
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
@@ -45,7 +31,7 @@ You can clone Aurora repository using following command.
 
 Next, you need to build GPU backend. So please `cuda` directory and run `make` command as shown below.
 
-1. Go to `cuda` directory `cd cuda`
+1. Go to `cuda` directory (`cd cuda`)
 2. Run `make`
 
 ##### Installing the Library
@@ -55,16 +41,28 @@ Go to `Aurora` directory and run:
 1. `pip install -r requirements.txt`
 2. `pip install .`
 
+
 ### Examples
 
-Following are some of the examples written in Aurora. For complete list of examples please refer [`examples`](https://github.com/upul/Aurora/tree/master/examples) directory. Also, we have created few `Jupyter` notebooks and please refer [`examples/notebooks`](https://github.com/upul/Aurora/tree/master/examples/notebooks) for details. 
+Following lists some noticeable examples. For the complete list of examples please refer [`examples`](https://github.com/upul/Aurora/tree/master/examples) directory. Also,  for Jupyter notebooks please refer [`examples/notebooks`](https://github.com/upul/Aurora/tree/master/examples/notebooks) folder.
 
-1. [Linear Regression](https://github.com/upul/Aurora/blob/master/examples/linear_regression_optim.py)
-2. [Softmax](https://github.com/upul/Aurora/blob/master/examples/softmax.py)
-3. [Toy Neural Network](https://github.com/upul/Aurora/blob/master/examples/toy_neural_network.py)
-4. [MNIST](https://github.com/upul/Aurora/blob/master/examples/mnist.py)
+1. [mnist](https://github.com/upul/Aurora/blob/master/examples/mnist.py)
+2. [mnist_cnn](https://github.com/upul/Aurora/blob/master/examples/mnist_cnn.py)
+
+
+### Future Work
+
+Following features will be added in upcoming releases.
+
+* Dropout and Batch Normalization.
+* High-level API similar to Keras.
+* Ability to load pre-trained models.
+* Model checkpointing.
+
 
 ### Acknowledgement
+
+It all started with [CSE 599G1: Deep Learning System Design](http://dlsys.cs.washington.edu/) course. This course really helped me to understand fundamentals of Deep Learning System design. My answers to the two programming assignments of the [CSE 599G1](http://dlsys.cs.washington.edu/) was the foundation of the Aurora library.  So I would also like to acknowledge with much appreciation the instructors and teaching assistants of the  [SE 599G1](http://dlsys.cs.washington.edu/) course.
 
 
 ### References.

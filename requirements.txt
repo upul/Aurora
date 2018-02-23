@@ -1,3 +1,5 @@
-numpy
-seaborn
-matplotlib
+numpy==1.13.3
+matplotlib==2.1.0
+seaborn==0.8
+cytoolz==0.8.2
+
