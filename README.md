@@ -62,7 +62,7 @@ Following features will be added in upcoming releases.
 
 ### Acknowledgement
 
-It all started with [CSE 599G1: Deep Learning System Design](http://dlsys.cs.washington.edu/) course. This course really helped me to understand fundamentals of Deep Learning System design. My answers to the two programming assignments of the [CSE 599G1](http://dlsys.cs.washington.edu/) was the foundation of the Aurora library.  So I would also like to acknowledge with much appreciation the instructors and teaching assistants of the  [SE 599G1](http://dlsys.cs.washington.edu/) course.
+It all started with [CSE 599G1: Deep Learning System Design](http://dlsys.cs.washington.edu/) course. This course really helped me to understand fundamentals of Deep Learning System design. My answers to the two programming assignments of [CSE 599G1](http://dlsys.cs.washington.edu/) was the foundation of Aurora library.  So I would also like to acknowledge with much appreciation the instructors and teaching assistants of the  [SE 599G1](http://dlsys.cs.washington.edu/) course.
 
 
 ### References.
